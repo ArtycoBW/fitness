@@ -1,0 +1,14 @@
+node_modules
+.git
+.agents
+.local
+.env
+.env.*
+.next
+dist
+**/node_modules
+**/.next
+**/dist
+AGENTS.md
+getlayers.json
+stride-nine.zip

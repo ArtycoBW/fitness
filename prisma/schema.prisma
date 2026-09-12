@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client"
+  output = "../apps/api/src/generated/prisma"
+  moduleFormat = "cjs"
+}
+datasource db {
+  provider = "postgresql"
+}
+model ClubSettings {
+  id String @id @default("club")
+  name String @default("Страйд")
+  timezone String @default("Europe/Moscow")
+  currency String @default("RUB")
+  settings Json @default("{}")
+  updatedAt DateTime @updatedAt
+}
