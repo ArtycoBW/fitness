@@ -14,6 +14,7 @@ import {
   Dumbbell,
   DoorOpen,
   Activity,
+  CreditCard,
 } from "lucide-react";
 import { api, post, workspace, type User, ApiError } from "@/lib/api";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
@@ -22,6 +23,8 @@ export const adminNavigation = [
   { path: "trainers", label: "Тренеры", icon: Dumbbell },
   { path: "halls", label: "Залы", icon: DoorOpen },
   { path: "workouts", label: "Направления", icon: Activity },
+  { path: "membership-plans", label: "Тарифы", icon: CreditCard },
+  { path: "memberships", label: "Абонементы", icon: CreditCard },
 ];
 export function AppShell({
   children,
@@ -107,6 +110,13 @@ export function AppShell({
                   icon={<item.icon size={20} />}
                 />
               ))}
+            {area === "account" && (
+              <SidebarLink
+                href="/account/memberships"
+                label="Абонементы"
+                icon={<CreditCard size={20} />}
+              />
+            )}
             {area === "trainer" && (
               <>
                 <SidebarLink

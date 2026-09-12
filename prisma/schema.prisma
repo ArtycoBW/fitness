@@ -106,6 +106,8 @@ model StaffInvite {
 }
 
 model ClientProfile {
+  memberships   Membership[]
+  orders        Order[]
   email         String?
   notes         ClientNote[]
   trainers      TrainerClient[]
@@ -125,19 +127,20 @@ model ClientProfile {
 }
 
 model TrainerProfile {
-  specialties  String[]         @default([])
-  workingHours Json             @default("[]")
+  planVersions MembershipPlanVersion[] @relation("PlanTrainers")
+  specialties  String[]                @default([])
+  workingHours Json                    @default("[]")
   clients      TrainerClient[]
   absences     TrainerAbsence[]
-  id           String           @id @default(uuid()) @db.Uuid
-  userId       String           @unique @db.Uuid
-  slug         String           @unique
-  bio          String           @default("")
-  active       Boolean          @default(true)
-  published    Boolean          @default(false)
+  id           String                  @id @default(uuid()) @db.Uuid
+  userId       String                  @unique @db.Uuid
+  slug         String                  @unique
+  bio          String                  @default("")
+  active       Boolean                 @default(true)
+  published    Boolean                 @default(false)
   archivedAt   DateTime?
-  version      Int              @default(1)
-  user         User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  version      Int                     @default(1)
+  user         User                    @relation(fields: [userId], references: [id], onDelete: Restrict)
 }
 
 model OutboxEvent {
@@ -195,17 +198,18 @@ model TrainerClient {
 }
 
 model Hall {
-  id          String        @id @default(uuid()) @db.Uuid
-  name        String
-  slug        String        @unique
-  description String        @default("")
-  capacity    Int
-  equipment   String[]      @default([])
-  imageUrl    String?
-  published   Boolean       @default(false)
-  archivedAt  DateTime?
-  version     Int           @default(1)
-  closures    HallClosure[]
+  planVersions MembershipPlanVersion[] @relation("PlanHalls")
+  id           String                  @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String                  @unique
+  description  String                  @default("")
+  capacity     Int
+  equipment    String[]                @default([])
+  imageUrl     String?
+  published    Boolean                 @default(false)
+  archivedAt   DateTime?
+  version      Int                     @default(1)
+  closures     HallClosure[]
 }
 
 model HallClosure {
@@ -231,18 +235,140 @@ model TrainerAbsence {
 }
 
 model WorkoutType {
-  id              String    @id @default(uuid()) @db.Uuid
+  planVersions    MembershipPlanVersion[] @relation("PlanWorkouts")
+  id              String                  @id @default(uuid()) @db.Uuid
   name            String
-  slug            String    @unique
-  description     String    @default("")
+  slug            String                  @unique
+  description     String                  @default("")
   category        String
-  level           String    @default("ALL")
-  durationMinutes Int       @default(60)
-  format          String    @default("GROUP")
-  capacity        Int       @default(12)
-  equipment       String[]  @default([])
+  level           String                  @default("ALL")
+  durationMinutes Int                     @default(60)
+  format          String                  @default("GROUP")
+  capacity        Int                     @default(12)
+  equipment       String[]                @default([])
   imageUrl        String?
-  published       Boolean   @default(false)
+  published       Boolean                 @default(false)
   archivedAt      DateTime?
-  version         Int       @default(1)
+  version         Int                     @default(1)
+}
+
+model MembershipPlan {
+  id         String                  @id @default(uuid()) @db.Uuid
+  name       String
+  slug       String                  @unique
+  published  Boolean                 @default(false)
+  archivedAt DateTime?
+  version    Int                     @default(1)
+  versions   MembershipPlanVersion[]
+}
+
+model MembershipPlanVersion {
+  id                   String           @id @default(uuid()) @db.Uuid
+  planId               String           @db.Uuid
+  number               Int
+  title                String
+  description          String
+  priceMinor           Int
+  durationDays         Int
+  visitLimit           Int?
+  freezeQuotaDays      Int              @default(0)
+  activationWindowDays Int              @default(30)
+  weekdays             Int[]            @default([0, 1, 2, 3, 4, 5, 6])
+  startMinute          Int              @default(0)
+  endMinute            Int              @default(1440)
+  createdAt            DateTime         @default(now())
+  plan                 MembershipPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  workouts             WorkoutType[]    @relation("PlanWorkouts")
+  trainers             TrainerProfile[] @relation("PlanTrainers")
+  halls                Hall[]           @relation("PlanHalls")
+  memberships          Membership[]
+  orders               Order[]
+
+  @@unique([planId, number])
+}
+
+model Order {
+  id              String                @id @default(uuid()) @db.Uuid
+  clientId        String                @db.Uuid
+  planVersionId   String                @db.Uuid
+  totalMinor      Int
+  currency        String                @default("RUB")
+  status          String                @default("PENDING")
+  activationDate  DateTime
+  productSnapshot Json
+  expiresAt       DateTime
+  paidAt          DateTime?
+  createdAt       DateTime              @default(now())
+  createdBy       String                @db.Uuid
+  client          ClientProfile         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  planVersion     MembershipPlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Restrict)
+  membership      Membership?
+
+  @@index([clientId, createdAt])
+}
+
+model Membership {
+  id            String                @id @default(uuid()) @db.Uuid
+  clientId      String                @db.Uuid
+  planVersionId String                @db.Uuid
+  orderId       String                @unique @db.Uuid
+  startAt       DateTime
+  endAt         DateTime
+  cancelledAt   DateTime?
+  termsSnapshot Json
+  available     Int                   @default(0)
+  reserved      Int                   @default(0)
+  consumed      Int                   @default(0)
+  version       Int                   @default(1)
+  createdAt     DateTime              @default(now())
+  client        ClientProfile         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  planVersion   MembershipPlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Restrict)
+  order         Order                 @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  ledger        MembershipLedger[]
+  freezes       MembershipFreeze[]
+
+  @@index([clientId, endAt])
+}
+
+model MembershipLedger {
+  id             String     @id @default(uuid()) @db.Uuid
+  membershipId   String     @db.Uuid
+  bookingId      String?    @db.Uuid
+  eventKey       String     @unique
+  kind           String
+  availableDelta Int
+  reservedDelta  Int
+  consumedDelta  Int
+  reason         String?
+  actorId        String?    @db.Uuid
+  createdAt      DateTime   @default(now())
+  membership     Membership @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+
+  @@index([membershipId, createdAt])
+}
+
+model MembershipFreeze {
+  id           String     @id @default(uuid()) @db.Uuid
+  membershipId String     @db.Uuid
+  startAt      DateTime
+  endAt        DateTime
+  days         Int
+  status       String     @default("ACTIVE")
+  reason       String?
+  createdAt    DateTime   @default(now())
+  membership   Membership @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+
+  @@index([membershipId, startAt, endAt])
+}
+
+model IdempotencyRecord {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorId     String   @db.Uuid
+  route       String
+  key         String
+  requestHash String
+  response    Json
+  createdAt   DateTime @default(now())
+
+  @@unique([actorId, route, key])
 }

@@ -209,6 +209,50 @@ async function seed() {
           data: { email, name, phone: "+79990000" + String(100 + index) },
         });
     }
+    for (const p of [
+      {
+        slug: "start",
+        title: "Первый шаг",
+        description:
+          "Одна тренировка, чтобы познакомиться с клубом и найти своё направление.",
+        priceMinor: 90000,
+        durationDays: 7,
+        visitLimit: 1,
+        freezeQuotaDays: 0,
+      },
+      {
+        slug: "rhythm",
+        title: "Свой ритм",
+        description:
+          "Восемь занятий в месяц — достаточно, чтобы движение стало привычкой.",
+        priceMinor: 490000,
+        durationDays: 30,
+        visitLimit: 8,
+        freezeQuotaDays: 7,
+      },
+      {
+        slug: "freedom",
+        title: "Свобода движения",
+        description:
+          "Все направления в удобном темпе. Приходите, когда хочется двигаться.",
+        priceMinor: 790000,
+        durationDays: 30,
+        visitLimit: null,
+        freezeQuotaDays: 7,
+      },
+    ]) {
+      const { slug, ...terms } = p;
+      await db.membershipPlan.upsert({
+        where: { slug },
+        update: {},
+        create: {
+          slug,
+          name: terms.title,
+          published: true,
+          versions: { create: { ...terms, number: 1 } },
+        },
+      });
+    }
     await db.auditLog.create({
       data: {
         actorId: owner.id,

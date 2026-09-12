@@ -23,3 +23,14 @@ export const inputToUtc = (value: string) =>
   new Date(
     value.length === 16 ? value + ":00+03:00" : value + "+03:00",
   ).toISOString();
+export const visits = (value: number) =>
+  value +
+  " " +
+  ({
+    zero: "посещений",
+    two: "посещения",
+    one: "посещение",
+    few: "посещения",
+    many: "посещений",
+    other: "посещения",
+  }[new Intl.PluralRules("ru-RU").select(value)] ?? "посещений");

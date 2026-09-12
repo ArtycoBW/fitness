@@ -1,0 +1,13 @@
+ALTER TABLE "Membership" ADD CONSTRAINT "membership_balances_nonnegative" CHECK ("available">=0 AND "reserved">=0 AND "consumed">=0), ADD CONSTRAINT "membership_dates_valid" CHECK ("endAt">"startAt");
+ALTER TABLE "MembershipPlanVersion" ADD CONSTRAINT "plan_terms_valid" CHECK ("priceMinor">0 AND "durationDays">0 AND ("visitLimit" IS NULL OR "visitLimit">0) AND "freezeQuotaDays">=0 AND "startMinute">=0 AND "endMinute"<=1440 AND "endMinute">"startMinute");
+ALTER TABLE "MembershipFreeze" ADD CONSTRAINT "freeze_valid" CHECK (("status"='ACTIVE' AND "days">0 AND "endAt">"startAt") OR ("status"='CANCELLED' AND "days"=0 AND "endAt"="startAt"));
+ALTER TABLE "MembershipFreeze" ADD CONSTRAINT "freeze_no_overlap" EXCLUDE USING gist ("membershipId" WITH =, tsrange("startAt","endAt",'[)') WITH &&) WHERE ("status"='ACTIVE');
+CREATE FUNCTION immutable_history() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Historical rows are immutable'; END; $$;
+CREATE TRIGGER ledger_immutable BEFORE UPDATE OR DELETE ON "MembershipLedger" FOR EACH ROW EXECUTE FUNCTION immutable_history();
+CREATE TRIGGER plan_version_immutable BEFORE UPDATE OR DELETE ON "MembershipPlanVersion" FOR EACH ROW EXECUTE FUNCTION immutable_history();
+CREATE FUNCTION immutable_membership_terms() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."termsSnapshot" IS DISTINCT FROM OLD."termsSnapshot" OR NEW."orderId" IS DISTINCT FROM OLD."orderId" OR NEW."planVersionId" IS DISTINCT FROM OLD."planVersionId" OR NEW."clientId" IS DISTINCT FROM OLD."clientId" OR NEW."startAt" IS DISTINCT FROM OLD."startAt" THEN RAISE EXCEPTION 'Membership purchase terms are immutable'; END IF; RETURN NEW; END; $$;
+CREATE TRIGGER membership_terms_immutable BEFORE UPDATE ON "Membership" FOR EACH ROW EXECUTE FUNCTION immutable_membership_terms();
+ALTER TABLE "Hall" ADD CONSTRAINT "hall_capacity_positive" CHECK ("capacity">0);
+ALTER TABLE "WorkoutType" ADD CONSTRAINT "workout_rules_valid" CHECK ("capacity">0 AND "durationMinutes">0 AND ("format"<>'PERSONAL' OR "capacity"=1));
+ALTER TABLE "HallClosure" ADD CONSTRAINT "hall_closure_dates" CHECK ("endAt">"startAt");
+ALTER TABLE "TrainerAbsence" ADD CONSTRAINT "trainer_absence_dates" CHECK ("endAt">"startAt");

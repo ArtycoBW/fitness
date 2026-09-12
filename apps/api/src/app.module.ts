@@ -1,5 +1,6 @@
 import { CatalogModule } from "./modules/catalog/catalog.controller";
 import { MediaModule } from "./modules/catalog/media.controller";
+import { MembershipModule } from "./modules/memberships/membership.controller";
 import { Controller, Get, Module } from "@nestjs/common";
 import { Db } from "./db";
 import { DatabaseModule } from "./common/database.module";
@@ -19,7 +20,13 @@ class HealthController {
   }
 }
 @Module({
-  imports: [DatabaseModule, AuthModule, CatalogModule, MediaModule],
+  imports: [
+    DatabaseModule,
+    AuthModule,
+    MembershipModule,
+    CatalogModule,
+    MediaModule,
+  ],
   providers: [OutboxService],
   controllers: [HealthController],
 })

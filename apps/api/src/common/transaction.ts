@@ -15,7 +15,26 @@ export async function atomic<T>(
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2034" && attempt < 3) continue;
+        const adapter = e.meta?.driverAdapterError as
+          { cause?: { kind?: string; originalCode?: string } } | undefined;
+        const retryable =
+          e.code === "P2034" ||
+          (e.code === "P2010" &&
+            adapter?.cause?.kind === "TransactionWriteConflict");
+        if (retryable) {
+          if (attempt < 3) continue;
+          fail(
+            "CONCURRENT_MODIFICATION",
+            "Данные изменяются другим запросом. Повторите действие",
+            409,
+          );
+        }
+        if (adapter?.cause?.originalCode === "23P01")
+          fail(
+            "RESOURCE_CONFLICT",
+            "Выбранное время пересекается с другой записью",
+            409,
+          );
         if (e.code === "P2002")
           fail("DUPLICATE", "Запись с такими данными уже существует", 409);
         if (e.code === "P2025") fail("NOT_FOUND", "Запись не найдена", 404);
