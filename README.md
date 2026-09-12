@@ -6,16 +6,23 @@
 
 Требуется Node.js 24+ и pnpm 11.8, Docker с Linux-контейнерами.
 
-1. Скопируйте .env.example в .env.
+1. Скопируйте .env.example в .env. Задайте случайный `OUTBOX_SECRET` длиной минимум 32 символа. Сохраняйте его между перезапусками: он защищает содержимое писем в очереди.
 2. Выполните pnpm install, затем pnpm infra:up.
 3. Выполните pnpm db:generate и pnpm db:migrate.
 4. Запустите pnpm dev.
+5. В отдельном терминале запустите `pnpm --filter @fitness/api worker` для отправки писем.
+
+Для первого руководителя задайте `OWNER_EMAIL`, `OWNER_PASSWORD` (12+ символов), при необходимости `OWNER_NAME`, затем выполните `pnpm --filter @fitness/api owner:create`. Команда не заменяет существующего руководителя.
+
+Для наполнения локального клуба вымышленными данными задайте `SEED_PASSWORD` (12+ символов) и выполните `pnpm db:seed`. Аккаунты: `owner@stride.local`, `reception@stride.local`, `trainer@stride.local`, `client@stride.local`; пароль берётся из переменной. Повторный seed сохраняет существующие записи и пароли. В production команда запрещена.
 
 Web: http://localhost:3000. API: http://localhost:4000/api/v1. OpenAPI: http://localhost:4000/api/docs. Локальная почта: http://localhost:8025.
 
 ## Проверки
 
-pnpm lint, pnpm typecheck, pnpm build. Миграции применяются командой pnpm db:migrate.
+`pnpm lint`, `pnpm typecheck`, `pnpm build`, затем `pnpm test`. Интеграционные тесты запускают собранный API на порту 4100 и используют отдельную PostgreSQL-базу с суффиксом `_test`. Пользователь БД должен иметь право создать эту базу; можно заранее подготовить её и задать `TEST_DATABASE_URL`. Миграции применяются командой `pnpm db:migrate`.
+
+Изображения сохраняются в `UPLOADS_DIR`. Входящие JPG/PNG/WebP ограничены 5 МБ и 20 млн пикселей, перекодируются в WebP без исходных метаданных.
 
 ## Контейнеры
 

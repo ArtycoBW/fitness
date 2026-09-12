@@ -93,6 +93,7 @@ model ConsentRecord {
 }
 
 model StaffInvite {
+  clientId   String?   @db.Uuid
   id         String    @id @default(uuid()) @db.Uuid
   email      String
   name       String
@@ -105,31 +106,38 @@ model StaffInvite {
 }
 
 model ClientProfile {
-  id            String    @id @default(uuid()) @db.Uuid
-  userId        String?   @unique @db.Uuid
+  email         String?
+  notes         ClientNote[]
+  trainers      TrainerClient[]
+  id            String          @id @default(uuid()) @db.Uuid
+  userId        String?         @unique @db.Uuid
   name          String
   phone         String?
-  status        String    @default("ACTIVE")
-  visitsBlocked Boolean   @default(false)
-  joinedAt      DateTime  @default(now())
+  status        String          @default("ACTIVE")
+  visitsBlocked Boolean         @default(false)
+  joinedAt      DateTime        @default(now())
   archivedAt    DateTime?
-  version       Int       @default(1)
-  user          User?     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  version       Int             @default(1)
+  user          User?           @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([name])
   @@index([phone])
 }
 
 model TrainerProfile {
-  id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @unique @db.Uuid
-  slug       String    @unique
-  bio        String    @default("")
-  active     Boolean   @default(true)
-  published  Boolean   @default(false)
-  archivedAt DateTime?
-  version    Int       @default(1)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  specialties  String[]         @default([])
+  workingHours Json             @default("[]")
+  clients      TrainerClient[]
+  absences     TrainerAbsence[]
+  id           String           @id @default(uuid()) @db.Uuid
+  userId       String           @unique @db.Uuid
+  slug         String           @unique
+  bio          String           @default("")
+  active       Boolean          @default(true)
+  published    Boolean          @default(false)
+  archivedAt   DateTime?
+  version      Int              @default(1)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Restrict)
 }
 
 model OutboxEvent {
@@ -166,4 +174,75 @@ model RateBucket {
   count  Int      @default(1)
 
   @@id([key, window])
+}
+
+model ClientNote {
+  id        String        @id @default(uuid()) @db.Uuid
+  clientId  String        @db.Uuid
+  actorId   String        @db.Uuid
+  text      String
+  createdAt DateTime      @default(now())
+  client    ClientProfile @relation(fields: [clientId], references: [id], onDelete: Restrict)
+}
+
+model TrainerClient {
+  trainerId String         @db.Uuid
+  clientId  String         @db.Uuid
+  trainer   TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+  client    ClientProfile  @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  @@id([trainerId, clientId])
+}
+
+model Hall {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String        @unique
+  description String        @default("")
+  capacity    Int
+  equipment   String[]      @default([])
+  imageUrl    String?
+  published   Boolean       @default(false)
+  archivedAt  DateTime?
+  version     Int           @default(1)
+  closures    HallClosure[]
+}
+
+model HallClosure {
+  id      String   @id @default(uuid()) @db.Uuid
+  hallId  String   @db.Uuid
+  startAt DateTime
+  endAt   DateTime
+  reason  String
+  hall    Hall     @relation(fields: [hallId], references: [id], onDelete: Restrict)
+
+  @@index([hallId, startAt, endAt])
+}
+
+model TrainerAbsence {
+  id        String         @id @default(uuid()) @db.Uuid
+  trainerId String         @db.Uuid
+  startAt   DateTime
+  endAt     DateTime
+  reason    String
+  trainer   TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+
+  @@index([trainerId, startAt, endAt])
+}
+
+model WorkoutType {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String    @unique
+  description     String    @default("")
+  category        String
+  level           String    @default("ALL")
+  durationMinutes Int       @default(60)
+  format          String    @default("GROUP")
+  capacity        Int       @default(12)
+  equipment       String[]  @default([])
+  imageUrl        String?
+  published       Boolean   @default(false)
+  archivedAt      DateTime?
+  version         Int       @default(1)
 }

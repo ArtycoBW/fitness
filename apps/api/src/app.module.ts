@@ -1,15 +1,26 @@
-import { Controller, Get, Module } from '@nestjs/common';
-import { Db } from './db';
-import { DatabaseModule } from './common/database.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { Public } from './modules/auth/access';
-import { OutboxService } from './modules/notifications/outbox.service';
+import { CatalogModule } from "./modules/catalog/catalog.controller";
+import { MediaModule } from "./modules/catalog/media.controller";
+import { Controller, Get, Module } from "@nestjs/common";
+import { Db } from "./db";
+import { DatabaseModule } from "./common/database.module";
+import { AuthModule } from "./modules/auth/auth.module";
+import { Public } from "./modules/auth/access";
+import { OutboxService } from "./modules/notifications/outbox.service";
 @Public()
-@Controller('health')
+@Controller("health")
 class HealthController {
- constructor(private readonly db: Db) {}
- @Get('live') live() { return { status: 'ok' }; }
- @Get('ready') async ready() { await this.db.$queryRaw`SELECT 1`; return { status: 'ok', database: 'connected' }; }
+  constructor(private readonly db: Db) {}
+  @Get("live") live() {
+    return { status: "ok" };
+  }
+  @Get("ready") async ready() {
+    await this.db.$queryRaw`SELECT 1`;
+    return { status: "ok", database: "connected" };
+  }
 }
-@Module({ imports: [DatabaseModule, AuthModule], providers: [OutboxService], controllers: [HealthController] })
+@Module({
+  imports: [DatabaseModule, AuthModule, CatalogModule, MediaModule],
+  providers: [OutboxService],
+  controllers: [HealthController],
+})
 export class AppModule {}
