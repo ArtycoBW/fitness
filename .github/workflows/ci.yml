@@ -10,6 +10,7 @@ jobs:
         ports: ['54329:5432']
         options: --health-cmd "pg_isready -U fitness -d fitness" --health-interval 5s --health-retries 10
     env:
+      OUTBOX_SECRET: ci-only-encryption-key-not-for-deployment-12345
       DATABASE_URL: postgresql://fitness:fitness_local@localhost:54329/fitness
     steps:
       - uses: actions/checkout@v4

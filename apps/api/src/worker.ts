@@ -1,11 +1,14 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Db } from './db';
+import { OutboxService } from './modules/notifications/outbox.service';
 async function run() {
  const app = await NestFactory.createApplicationContext(AppModule);
- const db = app.get(Db);
- const timer = setInterval(() => { void db.$queryRaw`SELECT 1`.catch(() => process.stderr.write('Worker database health check failed\n')); }, 30000);
+ const outbox = app.get(OutboxService);
+ let running = false;
+ const tick = async () => { if(running)return; running=true; try { await outbox.tick(); } catch { process.stderr.write('Worker tick failed\n'); } finally { running=false; } };
+ const timer = setInterval(() => void tick(), 2000);
+ await tick();
  const close = async () => { clearInterval(timer); await app.close(); };
  process.once('SIGINT', () => void close()); process.once('SIGTERM', () => void close());
 }

@@ -13,7 +13,7 @@ async function bootstrap() {
  const app = await NestFactory.create(AppModule);
  app.setGlobalPrefix('api/v1');
  app.use(helmet()); app.use(cookieParser());
- app.use((_req: Request,res: Response,next: NextFunction) => { res.setHeader('X-Request-Id', randomUUID()); next(); });
+ app.use((_req: Request,res: Response,next: NextFunction) => { res.setHeader('X-Request-Id', randomUUID()); res.setHeader('Cache-Control','no-store'); next(); });
  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
  app.useGlobalFilters(new Errors());
  if (env.NODE_ENV !== 'production') SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, new DocumentBuilder().setTitle('Fitness API').setVersion('1.0').addCookieAuth('fitness_session').build()));

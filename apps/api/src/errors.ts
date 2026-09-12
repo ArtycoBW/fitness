@@ -9,6 +9,7 @@ export class Errors implements ExceptionFilter {
   const body = error instanceof HttpException ? error.getResponse() : null;
   const message = typeof body === 'string' ? body : body && typeof body === 'object' && 'message' in body ? body.message : 'Не удалось выполнить запрос';
   if (status >= 500) this.logger.error(JSON.stringify({ requestId: res.getHeader('X-Request-Id'), method: req.method, path: req.path, errorType: error instanceof Error ? error.name : 'UnknownError' }));
-  res.status(status).json({ error: { code: status === 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR', message, requestId: res.getHeader('X-Request-Id') } });
+  const data = body && typeof body === 'object' ? body as Record<string, unknown> : {};
+  res.status(status).json({ error: { code: data.code ?? (status === 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR'), message, details: data.details, requestId: res.getHeader('X-Request-Id') } });
  }
 }

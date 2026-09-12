@@ -1,16 +1,169 @@
 generator client {
-  provider = "prisma-client"
-  output = "../apps/api/src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../apps/api/src/generated/prisma"
   moduleFormat = "cjs"
 }
+
 datasource db {
   provider = "postgresql"
 }
+
 model ClubSettings {
-  id String @id @default("club")
-  name String @default("Страйд")
-  timezone String @default("Europe/Moscow")
-  currency String @default("RUB")
-  settings Json @default("{}")
+  id        String   @id @default("club")
+  name      String   @default("Страйд")
+  timezone  String   @default("Europe/Moscow")
+  currency  String   @default("RUB")
+  settings  Json     @default("{}")
   updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  RECEPTION
+  TRAINER
+  CLIENT
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+model User {
+  id              String          @id @default(uuid()) @db.Uuid
+  email           String          @unique
+  name            String
+  passwordHash    String
+  status          UserStatus      @default(ACTIVE)
+  emailVerifiedAt DateTime?
+  avatarUrl       String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  roles           UserRole[]
+  sessions        AuthSession[]
+  tokens          OneTimeToken[]
+  consents        ConsentRecord[]
+  client          ClientProfile?
+  trainer         TrainerProfile?
+}
+
+model UserRole {
+  userId String @db.Uuid
+  role   Role
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role])
+}
+
+model AuthSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  tokenHash  String    @unique
+  csrfHash   String
+  expiresAt  DateTime
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model OneTimeToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  purpose    String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+}
+
+model ConsentRecord {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  documentType    String
+  documentVersion String
+  acceptedAt      DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model StaffInvite {
+  id         String    @id @default(uuid()) @db.Uuid
+  email      String
+  name       String
+  roles      Role[]
+  invitedBy  String    @db.Uuid
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model ClientProfile {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String?   @unique @db.Uuid
+  name          String
+  phone         String?
+  status        String    @default("ACTIVE")
+  visitsBlocked Boolean   @default(false)
+  joinedAt      DateTime  @default(now())
+  archivedAt    DateTime?
+  version       Int       @default(1)
+  user          User?     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([name])
+  @@index([phone])
+}
+
+model TrainerProfile {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @unique @db.Uuid
+  slug       String    @unique
+  bio        String    @default("")
+  active     Boolean   @default(true)
+  published  Boolean   @default(false)
+  archivedAt DateTime?
+  version    Int       @default(1)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  type        String
+  dedupKey    String    @unique
+  payload     String
+  status      String    @default("PENDING")
+  availableAt DateTime  @default(now())
+  lockedAt    DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([status, availableAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @db.Uuid
+  action     String
+  entityType String
+  entityId   String
+  changes    Json     @default("{}")
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+}
+
+model RateBucket {
+  key    String
+  window DateTime
+  count  Int      @default(1)
+
+  @@id([key, window])
 }

@@ -31,6 +31,7 @@ services:
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       PAYMENT_PROVIDER: simulator
+      OUTBOX_SECRET: ${OUTBOX_SECRET:?Set OUTBOX_SECRET in .env}
     depends_on:
       postgres: {condition: service_healthy}
     ports: ["127.0.0.1:4000:4000"]
@@ -39,14 +40,17 @@ services:
     build: {context: ., dockerfile: infra/docker/api.Dockerfile}
     command: ["node", "apps/api/dist/worker.js"]
     environment:
+      OUTBOX_SECRET: ${OUTBOX_SECRET:?Set OUTBOX_SECRET in .env}
       DATABASE_URL: postgresql://fitness:${POSTGRES_PASSWORD:-fitness_local}@postgres:5432/fitness
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       WEB_URL: ${WEB_URL:-http://localhost:3000}
       NODE_ENV: production
+      OUTBOX_SECRET: ${OUTBOX_SECRET:?Set OUTBOX_SECRET in .env}
     depends_on:
       postgres: {condition: service_healthy}
   web:
+    # Browser requests stay on the web origin through the Next API proxy.
     profiles: ["app"]
     build: {context: ., dockerfile: infra/docker/web.Dockerfile}
     environment:

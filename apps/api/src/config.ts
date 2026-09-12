@@ -9,4 +9,5 @@ export const env = z.object({
  SMTP_HOST: z.string().default('localhost'), SMTP_PORT: z.coerce.number().default(1025),
  SMTP_FROM: z.string().default('club@fitness.local'), PAYMENT_PROVIDER: z.literal('simulator').default('simulator'),
  UPLOADS_DIR: z.string().default('./uploads'),
+ OUTBOX_SECRET: z.string().min(32),
 }).parse(process.env);

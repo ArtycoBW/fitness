@@ -1,0 +1,17 @@
+'use client';
+import { useState } from 'react';
+import { useQuery,useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { api,type User } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+export function Profile(){
+ const qc=useQueryClient();const {data:user}=useQuery({queryKey:['me'],queryFn:()=>api<User>('/auth/me')});
+ const {data:sessions}=useQuery({queryKey:['sessions'],queryFn:()=>api<Array<{id:string;lastSeenAt:string}>>('/auth/sessions')});
+ const [pending,setPending]=useState(false);
+ async function save(event:React.FormEvent<HTMLFormElement>){event.preventDefault();setPending(true);const fields=new FormData(event.currentTarget);try{await api('/me',{method:'PATCH',body:JSON.stringify({name:fields.get('name'),...(fields.get('phone')?{phone:fields.get('phone')}: {})})});await qc.invalidateQueries({queryKey:['me']});toast.success('Профиль сохранён');}catch(e){toast.error((e as Error).message);}finally{setPending(false);}}
+ async function password(event:React.FormEvent<HTMLFormElement>){event.preventDefault();const form=event.currentTarget;const fields=new FormData(form);try{await api('/me/password',{method:'PUT',body:JSON.stringify({currentPassword:fields.get('currentPassword'),password:fields.get('password')})});form.reset();await qc.invalidateQueries({queryKey:['sessions']});toast.success('Пароль обновлён');}catch(e){toast.error((e as Error).message);}}
+ if(!user)return null;
+ return <><div className="page-heading"><span className="eyebrow">ВАШ АККАУНТ</span><h1>Профиль</h1><p>Контакты и безопасность вашего пространства.</p></div><div className="profile-grid"><section className="surface"><h2>Личные данные</h2><form className="form-stack" onSubmit={save} key={user.id}><div className="field"><Label htmlFor="profile-name">Имя</Label><Input id="profile-name" name="name" defaultValue={user.name} required minLength={2}/></div><div className="field"><Label htmlFor="profile-email">Email</Label><Input id="profile-email" value={user.email} disabled/></div>{user.clientId&&<div className="field"><Label htmlFor="phone">Телефон</Label><Input id="phone" name="phone" type="tel" defaultValue={user.client?.phone??''} placeholder="+7 (999) 123-45-67"/></div>}<Button disabled={pending}>{pending?'Сохраняем…':'Сохранить изменения'}</Button></form></section><section className="surface"><h2>Безопасность</h2><form className="form-stack" onSubmit={password}><div className="field"><Label htmlFor="current-password">Текущий пароль</Label><Input id="current-password" name="currentPassword" type="password" autoComplete="current-password" required minLength={12}/></div><div className="field"><Label htmlFor="new-password">Новый пароль</Label><Input id="new-password" name="password" type="password" autoComplete="new-password" required minLength={12}/><p className="field-hint">Не менее 12 символов</p></div><Button variant="outline">Изменить пароль</Button></form><h3 className="mt-8 mb-3">Активные сессии</h3><div className="space-y-3">{sessions?.map(s=><div className="session-row" key={s.id}><span>{new Date(s.lastSeenAt).toLocaleString('ru-RU')}</span><button onClick={()=>void api('/auth/sessions/'+s.id,{method:'DELETE'}).then(()=>qc.invalidateQueries({queryKey:['sessions']})).catch(e=>toast.error(e.message))}>Завершить</button></div>)}</div></section></div></>;
+}
