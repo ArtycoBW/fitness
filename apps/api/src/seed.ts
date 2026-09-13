@@ -5,6 +5,7 @@ import { ResourceService } from "./modules/schedule/resource.service";
 import { ScheduleService } from "./modules/schedule/schedule.service";
 import { atomic } from "./common/transaction";
 import type { Principal } from "./modules/auth/access";
+import { seedPrograms } from "./seed-programs";
 async function seed() {
   if (env.NODE_ENV === "production")
     throw new Error("Seed is disabled in production");
@@ -299,6 +300,7 @@ async function seed() {
           );
       }
     }
+    if (client.client) await seedPrograms(db, owner.id, client.client.id);
     await db.auditLog.create({
       data: {
         actorId: owner.id,

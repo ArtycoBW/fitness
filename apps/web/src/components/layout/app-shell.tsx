@@ -100,6 +100,33 @@ export function AppShell({
                 : "Личный кабинет"}
           </div>
           <nav className="sidebar-nav">
+            {(area === "account" ||
+              user.roles.some((r) =>
+                ["OWNER", "ADMIN", "TRAINER"].includes(r),
+              )) && (
+              <SidebarLink
+                href={root + "/programs"}
+                label={area === "account" ? "Мои программы" : "Программы"}
+                icon={<Dumbbell size={20} />}
+              />
+            )}
+            {area !== "account" &&
+              user.roles.some((r) =>
+                ["OWNER", "ADMIN", "TRAINER"].includes(r),
+              ) && (
+                <>
+                  <SidebarLink
+                    href={root + "/exercises"}
+                    label="Упражнения"
+                    icon={<Activity size={20} />}
+                  />
+                  <SidebarLink
+                    href={root + "/assignments"}
+                    label="Назначения программ"
+                    icon={<Users size={20} />}
+                  />
+                </>
+              )}
             <SidebarLink
               href={root}
               label="Обзор"

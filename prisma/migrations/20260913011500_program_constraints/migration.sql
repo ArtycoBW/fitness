@@ -1,0 +1,10 @@
+CREATE UNIQUE INDEX assignment_one_active ON "ProgramAssignment" ("clientId", "programId") WHERE status='ACTIVE';
+ALTER TABLE "ProgramAssignment" ADD CONSTRAINT assignment_status CHECK (status IN ('ACTIVE','COMPLETED','REPLACED','CANCELLED'));
+ALTER TABLE "Exercise" ADD CONSTRAINT exercise_metric CHECK ("metricType" IN ('REPS','DURATION'));
+ALTER TABLE "ProgramExercise" ADD CONSTRAINT prescription_bounds CHECK (sets BETWEEN 1 AND 10 AND ((reps BETWEEN 1 AND 200 AND "durationSeconds" IS NULL) OR (reps IS NULL AND "durationSeconds" BETWEEN 1 AND 7200)) AND (reps IS NOT NULL OR "durationSeconds" IS NOT NULL) AND ("weightKg" IS NULL OR "weightKg" BETWEEN 0 AND 500) AND "restSeconds" BETWEEN 0 AND 600);
+ALTER TABLE "ExerciseSetLog" ADD CONSTRAINT actual_bounds CHECK ("setIndex" BETWEEN 1 AND 10 AND (("actualReps" BETWEEN 1 AND 500 AND "actualSeconds" IS NULL) OR ("actualReps" IS NULL AND "actualSeconds" BETWEEN 1 AND 14400)) AND ("actualReps" IS NOT NULL OR "actualSeconds" IS NOT NULL) AND ("actualWeightKg" IS NULL OR "actualWeightKg" BETWEEN 0 AND 500));
+ALTER TABLE "ProgramComment" ADD CONSTRAINT comment_visibility CHECK (visibility IN ('SHARED','TEAM'));
+CREATE TRIGGER program_version_immutable BEFORE UPDATE OR DELETE ON "ProgramVersion" FOR EACH ROW EXECUTE FUNCTION immutable_history();
+CREATE TRIGGER program_day_immutable BEFORE UPDATE OR DELETE ON "ProgramDay" FOR EACH ROW EXECUTE FUNCTION immutable_history();
+CREATE TRIGGER program_exercise_immutable BEFORE UPDATE OR DELETE ON "ProgramExercise" FOR EACH ROW EXECUTE FUNCTION immutable_history();
+CREATE TRIGGER program_log_revision_immutable BEFORE UPDATE OR DELETE ON "ProgramLogRevision" FOR EACH ROW EXECUTE FUNCTION immutable_history();

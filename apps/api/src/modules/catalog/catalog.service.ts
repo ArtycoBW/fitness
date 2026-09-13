@@ -254,12 +254,26 @@ export class CatalogService {
             session: { endAt: { gt: new Date() } },
           },
         });
-        if (obligations || bookings)
+        const programs = await tx.programAssignment.count({
+          where: { clientId: id, status: "ACTIVE" },
+        });
+        if (obligations || bookings || programs)
           fail(
             "CLIENT_OBLIGATIONS",
-            "У клиента есть действующие абонементы или будущие записи",
+            "У клиента есть действующие абонементы, программы или будущие записи",
           );
       }
+      if (
+        kind === "trainers" &&
+        data.archived &&
+        (await tx.programAssignment.count({
+          where: { trainerId: id, status: "ACTIVE" },
+        }))
+      )
+        fail(
+          "TRAINER_OBLIGATIONS",
+          "У тренера есть действующие программы клиентов. Сначала завершите назначения",
+        );
       const update = {
         archivedAt: data.archived ? new Date() : null,
         version: { increment: 1 },
@@ -360,10 +374,20 @@ export class CatalogService {
           create: { trainerId: dto.trainerId, clientId: id },
           update: {},
         });
-      } else
+      } else {
+        if (
+          await tx.programAssignment.count({
+            where: { trainerId: dto.trainerId, clientId: id, status: "ACTIVE" },
+          })
+        )
+          fail(
+            "PROGRAM_ACTIVE",
+            "Сначала завершите действующие программы этого тренера",
+          );
         await tx.trainerClient.deleteMany({
           where: { trainerId: dto.trainerId, clientId: id },
         });
+      }
       await audit(tx, auth.id, "TRAINER_ASSIGNED", "clients", id, dto);
       return { message: "Назначение обновлено" };
     });

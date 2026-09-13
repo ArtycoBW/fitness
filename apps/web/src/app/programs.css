@@ -1,0 +1,163 @@
+.exercise-library {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.exercise-library h2 {
+  margin: 16px 0 10px;
+}
+.exercise-library p {
+  margin-bottom: 16px;
+}
+.program-builder,
+.program-days {
+  display: grid;
+  gap: 24px;
+}
+.program-builder {
+  max-width: 1050px;
+}
+.program-day h2 {
+  margin: 0;
+}
+.prescription {
+  border-top: 1px solid var(--border);
+  padding: 20px 0;
+  margin-top: 18px;
+}
+.prescription h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.prescription p {
+  margin: 10px 0;
+}
+.prescription-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.prescription label,
+.actual-input-row label {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  display: grid;
+  gap: 7px;
+}
+.builder-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+}
+.program-version {
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+}
+.program-version summary,
+.prescription summary,
+.program-log-note summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+.program-version p {
+  padding-top: 14px;
+}
+.program-progress {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 16px 0 24px;
+}
+.program-progress progress {
+  accent-color: var(--primary);
+  height: 8px;
+  flex: 1;
+  min-width: 60px;
+  max-width: 400px;
+}
+.program-progress span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.actual-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+.actual-summary span {
+  font-size: 12px;
+  background: var(--muted);
+  padding: 7px 10px;
+  border-radius: 5px;
+}
+.program-log-note {
+  padding: 16px;
+  background: var(--muted);
+  border-radius: 8px;
+}
+.program-log-note p {
+  margin-bottom: 12px;
+}
+.log-exercise {
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 8px;
+}
+.log-exercise legend {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0 8px;
+}
+.actual-input-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0;
+}
+.actual-input-row > span {
+  font-size: 12px;
+}
+.form-textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+  background: var(--background);
+  font-size: 14px;
+  resize: vertical;
+}
+.form-textarea:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 700px) {
+  .exercise-library {
+    grid-template-columns: 1fr;
+  }
+  .prescription-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .actual-input-row {
+    grid-template-columns: 64px 1fr 1fr;
+    gap: 8px;
+  }
+  .program-progress {
+    flex-wrap: wrap;
+  }
+  .program-day .heading-actions {
+    align-items: flex-start;
+  }
+  .program-builder .surface {
+    padding: 18px;
+  }
+}

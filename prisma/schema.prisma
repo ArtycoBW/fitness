@@ -107,6 +107,7 @@ model StaffInvite {
 }
 
 model ClientProfile {
+  programAssignments ProgramAssignment[]
   bookings Booking[]
   occupancies ClientOccupancy[]
   memberships   Membership[]
@@ -130,6 +131,8 @@ model ClientProfile {
 }
 
 model TrainerProfile {
+  programs TrainingProgram[]
+  programAssignments ProgramAssignment[]
   sessions     ScheduledSession[]
   occupancies  TrainerOccupancy[]
   planVersions MembershipPlanVersion[] @relation("PlanTrainers")
@@ -575,4 +578,144 @@ model Notification {
  recipient User @relation(fields:[recipientId],references:[id],onDelete:Restrict)
  @@unique([recipientId,eventKey])
  @@index([recipientId,readAt,createdAt])
+}
+
+model Exercise {
+ id String @id @default(uuid()) @db.Uuid
+ name String
+ category String
+ equipment String[] @default([])
+ instructions String
+ metricType String
+ imageUrl String?
+ archivedAt DateTime?
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ prescriptions ProgramExercise[]
+ @@index([name])
+}
+model TrainingProgram {
+ id String @id @default(uuid()) @db.Uuid
+ authorTrainerId String @db.Uuid
+ title String
+ draft Json
+ version Int @default(1)
+ archivedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ author TrainerProfile @relation(fields:[authorTrainerId],references:[id],onDelete:Restrict)
+ versions ProgramVersion[]
+ assignments ProgramAssignment[]
+}
+model ProgramVersion {
+ id String @id @default(uuid()) @db.Uuid
+ programId String @db.Uuid
+ number Int
+ title String
+ goal String
+ level String
+ weeks Int
+ publishedAt DateTime @default(now())
+ program TrainingProgram @relation(fields:[programId],references:[id],onDelete:Restrict)
+ days ProgramDay[]
+ assignments ProgramAssignment[]
+ @@unique([programId,number])
+}
+model ProgramDay {
+ id String @id @default(uuid()) @db.Uuid
+ programVersionId String @db.Uuid
+ weekNumber Int
+ dayIndex Int
+ title String
+ programVersion ProgramVersion @relation(fields:[programVersionId],references:[id],onDelete:Restrict)
+ exercises ProgramExercise[]
+ logs ProgramDayLog[]
+ @@unique([programVersionId,weekNumber,dayIndex])
+}
+model ProgramExercise {
+ id String @id @default(uuid()) @db.Uuid
+ dayId String @db.Uuid
+ exerciseId String @db.Uuid
+ position Int
+ exerciseSnapshot Json
+ sets Int
+ reps Int?
+ durationSeconds Int?
+ weightKg Decimal? @db.Decimal(6,2)
+ restSeconds Int
+ notes String
+ day ProgramDay @relation(fields:[dayId],references:[id],onDelete:Restrict)
+ exercise Exercise @relation(fields:[exerciseId],references:[id],onDelete:Restrict)
+ logs ExerciseSetLog[]
+ @@unique([dayId,position])
+}
+model ProgramAssignment {
+ id String @id @default(uuid()) @db.Uuid
+ programId String @db.Uuid
+ programVersionId String @db.Uuid
+ clientId String @db.Uuid
+ trainerId String @db.Uuid
+ startsOn DateTime
+ status String @default("ACTIVE")
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ completedAt DateTime?
+ replacedById String? @unique @db.Uuid
+ program TrainingProgram @relation(fields:[programId],references:[id],onDelete:Restrict)
+ programVersion ProgramVersion @relation(fields:[programVersionId],references:[id],onDelete:Restrict)
+ client ClientProfile @relation(fields:[clientId],references:[id],onDelete:Restrict)
+ trainer TrainerProfile @relation(fields:[trainerId],references:[id],onDelete:Restrict)
+ replacedBy ProgramAssignment? @relation("AssignmentReplacement",fields:[replacedById],references:[id],onDelete:Restrict)
+ replaces ProgramAssignment? @relation("AssignmentReplacement")
+ logs ProgramDayLog[]
+ comments ProgramComment[]
+ @@index([clientId,status])
+ @@index([trainerId,status])
+}
+model ProgramDayLog {
+ id String @id @default(uuid()) @db.Uuid
+ assignmentId String @db.Uuid
+ dayId String @db.Uuid
+ performedOn DateTime
+ completedAt DateTime?
+ comment String
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ assignment ProgramAssignment @relation(fields:[assignmentId],references:[id],onDelete:Restrict)
+ day ProgramDay @relation(fields:[dayId],references:[id],onDelete:Restrict)
+ sets ExerciseSetLog[]
+ revisions ProgramLogRevision[]
+ @@unique([assignmentId,dayId])
+}
+model ExerciseSetLog {
+ id String @id @default(uuid()) @db.Uuid
+ dayLogId String @db.Uuid
+ programExerciseId String @db.Uuid
+ setIndex Int
+ actualReps Int?
+ actualSeconds Int?
+ actualWeightKg Decimal? @db.Decimal(6,2)
+ dayLog ProgramDayLog @relation(fields:[dayLogId],references:[id],onDelete:Restrict)
+ programExercise ProgramExercise @relation(fields:[programExerciseId],references:[id],onDelete:Restrict)
+ @@unique([dayLogId,programExerciseId,setIndex])
+}
+model ProgramLogRevision {
+ id String @id @default(uuid()) @db.Uuid
+ dayLogId String @db.Uuid
+ version Int
+ snapshot Json
+ createdAt DateTime @default(now())
+ dayLog ProgramDayLog @relation(fields:[dayLogId],references:[id],onDelete:Restrict)
+ @@unique([dayLogId,version])
+}
+model ProgramComment {
+ id String @id @default(uuid()) @db.Uuid
+ assignmentId String @db.Uuid
+ authorId String @db.Uuid
+ authorName String
+ body String
+ visibility String @default("SHARED")
+ createdAt DateTime @default(now())
+ assignment ProgramAssignment @relation(fields:[assignmentId],references:[id],onDelete:Restrict)
+ @@index([assignmentId,createdAt])
 }
