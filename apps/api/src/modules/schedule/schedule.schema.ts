@@ -68,7 +68,7 @@ export const rangeSchema = z
     (v) => {
       const days =
         (new Date(v.to).getTime() - new Date(v.from).getTime()) / 86400000;
-      return days >= 0 && days <= 62;
+      return days >= 0 && days <= 30;
     },
-    { message: "Выберите период до 62 дней" },
+    { message: "Выберите период до 31 дня" },
   );

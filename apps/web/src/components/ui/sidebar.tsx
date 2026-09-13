@@ -119,7 +119,7 @@ export function SidebarBody({ children }: { children: React.ReactNode }) {
           </SheetTrigger>
           <SheetContent side="left" className="w-72 bg-background p-5">
             <SheetTitle className="sr-only">Меню клуба</SheetTitle>
-            <div className="flex h-full flex-col">{children}</div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
           </SheetContent>
         </Sheet>
         <Link href="/" className="brand">

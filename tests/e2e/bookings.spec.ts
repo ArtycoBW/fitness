@@ -4,7 +4,7 @@ test("client books from schedule and cancels with visit release", async ({
 }) => {
   test.skip(
     !process.env.E2E_CLIENT_EMAIL || !process.env.E2E_PASSWORD,
-    "Requires seeded purchased client and running worker",
+    "Requires seeded client and running worker",
   );
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -17,6 +17,25 @@ test("client books from schedule and cancels with visit release", async ({
     .fill(process.env.E2E_PASSWORD!);
   await page.getByRole("button", { name: "Войти", exact: true }).click();
   await page.waitForURL("**/account");
+  await page.goto("/memberships");
+  await page
+    .locator(".public-plan")
+    .filter({
+      has: page.getByRole("heading", { name: "Свой ритм", exact: true }),
+    })
+    .getByRole("button", { name: "Выбрать абонемент" })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Перейти к оплате" })
+    .click();
+  await page.waitForURL("**/checkout/*");
+  await page.getByRole("button", { name: "Альфа Pay", exact: true }).click();
+  await page.getByRole("button", { name: /^Оплатить \d/ }).click();
+  await page.waitForURL("**/payments/*/confirmation");
+  await expect(
+    page.getByRole("heading", { name: "Всё получилось." }),
+  ).toBeVisible();
   const tomorrow = new Date(Date.now() + 86400000 + 10800000)
     .toISOString()
     .slice(0, 10);

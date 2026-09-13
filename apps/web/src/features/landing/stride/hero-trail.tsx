@@ -562,7 +562,10 @@ export const HeroTrail = ({ image, video, paused = false }: HeroTrailProps) => {
         }
       }
 
-      while (list.length && now - list[list.length - 1]!.t >= c.trail.lifetime) {
+      while (
+        list.length &&
+        now - list[list.length - 1]!.t >= c.trail.lifetime
+      ) {
         list.pop();
       }
 
@@ -1023,10 +1026,24 @@ export const HeroTrail = ({ image, video, paused = false }: HeroTrailProps) => {
       return;
     }
     let visible = true;
+    let ready = false;
+    let paintFrame = 0;
     const sync = () => {
-      if (visible && !document.hidden) void base.play().catch(() => {});
+      if (ready && visible && !document.hidden)
+        void base.play().catch(() => {});
       else base.pause();
     };
+    const loaded = () => {
+      // Let the poster and server-rendered copy paint before starting a decoder.
+      paintFrame = requestAnimationFrame(() => {
+        paintFrame = requestAnimationFrame(() => {
+          ready = true;
+          sync();
+        });
+      });
+    };
+    window.addEventListener("load", loaded, { once: true });
+    if (document.readyState === "complete") loaded();
     const observer = new IntersectionObserver(([entry]) => {
       visible = !!entry?.isIntersecting;
       sync();
@@ -1036,6 +1053,8 @@ export const HeroTrail = ({ image, video, paused = false }: HeroTrailProps) => {
     sync();
     return () => {
       observer.disconnect();
+      window.removeEventListener("load", loaded);
+      cancelAnimationFrame(paintFrame);
       document.removeEventListener("visibilitychange", sync);
       base.pause();
     };
@@ -1071,7 +1090,7 @@ export const HeroTrail = ({ image, video, paused = false }: HeroTrailProps) => {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="none"
         disablePictureInPicture
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover object-center max-md:object-[70%_center] tablet:object-[74%_center]"

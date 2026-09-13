@@ -12,3 +12,15 @@ dist
 AGENTS.md
 getlayers.json
 stride-nine.zip
+CLAUDE.md
+.claude
+.cursor
+.cursorrules
+skills-lock.json
+obsidian
+test-results
+playwright-report
+coverage
+uploads
+backups
+**/*.tsbuildinfo

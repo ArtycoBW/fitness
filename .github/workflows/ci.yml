@@ -1,17 +1,34 @@
 name: Checks
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     services:
       postgres:
-        image: postgres:18.3-alpine
-        env: { POSTGRES_USER: fitness, POSTGRES_PASSWORD: fitness_local, POSTGRES_DB: fitness }
-        ports: ['54329:5432']
+        image: postgres:18.4-alpine
+        env:
+          {
+            POSTGRES_USER: fitness,
+            POSTGRES_PASSWORD: fitness_local,
+            POSTGRES_DB: fitness,
+          }
+        ports: ["54329:5432"]
         options: --health-cmd "pg_isready -U fitness -d fitness" --health-interval 5s --health-retries 10
+      mailpit:
+        image: axllent/mailpit:v1.31.1
+        ports: ["1025:1025"]
     env:
       OUTBOX_SECRET: ci-only-encryption-key-not-for-deployment-12345
       DATABASE_URL: postgresql://fitness:fitness_local@localhost:54329/fitness
+      SMTP_HOST: 127.0.0.1
+      WEB_URL: http://localhost:3000
+      API_URL: http://localhost:4000
+      E2E_CLIENT_EMAIL: client@stride.local
+      E2E_OWNER_EMAIL: owner@stride.local
+      E2E_TRAINER_EMAIL: trainer@stride.local
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -23,5 +40,54 @@ jobs:
       - run: pnpm db:migrate
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm build
+      - run: pnpm --filter @fitness/api build
       - run: pnpm test
+      - name: Seed isolated browser environment
+        run: |
+          PASSWORD=$(openssl rand -hex 24)
+          echo "::add-mask::$PASSWORD"
+          SEED_PASSWORD="$PASSWORD" pnpm db:seed
+          echo "E2E_PASSWORD=$PASSWORD" >> "$GITHUB_ENV"
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Start production API and worker
+        run: |
+          mkdir -p .local
+          NODE_ENV=production node apps/api/dist/main.js > .local/api.log 2>&1 &
+          NODE_ENV=production node apps/api/dist/worker.js > .local/worker.log 2>&1 &
+          node scripts/wait-http.cjs http://localhost:4000/api/v1/health/ready
+      - run: pnpm --filter @fitness/web build
+      - name: Start production web
+        run: |
+          pnpm --filter @fitness/web start > .local/web.log 2>&1 &
+          node scripts/wait-http.cjs http://localhost:3000
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failure-diagnostics
+          path: test-results/
+          retention-days: 7
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OUTBOX_SECRET: ci-container-encryption-key-not-for-deployment-12345
+      SMTP_HOST: mailpit
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start production containers
+        run: docker compose --profile app up -d --build
+      - name: Verify web proxy, database and shared files
+        run: |
+          node scripts/wait-http.cjs http://localhost:3000/api/v1/health/ready
+          node scripts/wait-http.cjs http://localhost:3000
+          docker compose exec -T api node -e "if(process.getuid()===0)process.exit(1);require('node:fs').writeFileSync('/app/uploads/ci-volume-check','shared')"
+          docker compose exec -T worker node -e "const fs=require('node:fs');if(fs.readFileSync('/app/uploads/ci-volume-check','utf8')!=='shared')process.exit(1);fs.unlinkSync('/app/uploads/ci-volume-check')"
+          docker compose restart worker
+          docker compose exec -T worker node -e "if(process.getuid()===0)process.exit(1)"
+      - name: Container diagnostics
+        if: always()
+        run: docker compose --profile app logs --tail=100 api worker web migrate
+      - name: Stop containers
+        if: always()
+        run: docker compose --profile app down -v

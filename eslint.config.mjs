@@ -24,6 +24,8 @@ export default tseslint.config(
         process: "readonly",
         console: "readonly",
         URL: "readonly",
+        fetch: "readonly",
+        AbortSignal: "readonly",
       },
     },
     rules: { "@typescript-eslint/no-require-imports": "off" },

@@ -119,3 +119,40 @@ test("reduced motion and unavailable WebGL preserve usable content", async ({
     page.getByRole("heading", { name: "Расписание занятий", exact: true }),
   ).toBeVisible();
 });
+
+test("touch hero loads video only after an explicit play request", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await context.newPage();
+  await page.goto(process.env.E2E_BASE_URL ?? "http://localhost:3000");
+  await expect(page.locator(".stride-hero video")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Продолжить видео", exact: true })
+    .click();
+  await expect(page.locator(".stride-hero video").first()).toBeVisible();
+  await expect
+    .poll(() =>
+      page
+        .locator(".stride-hero video")
+        .first()
+        .evaluate((v) => (v as HTMLVideoElement).paused),
+    )
+    .toBe(false);
+  await page
+    .getByRole("button", { name: "Приостановить видео", exact: true })
+    .click();
+  await expect
+    .poll(() =>
+      page
+        .locator(".stride-hero video")
+        .first()
+        .evaluate((v) => (v as HTMLVideoElement).paused),
+    )
+    .toBe(true);
+  await context.close();
+});

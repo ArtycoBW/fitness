@@ -389,3 +389,12 @@ describe.sequential(
     });
   },
 );
+
+it("bounds public schedule reads to 31 calendar days", async () => {
+  expect(
+    (await call("/public/schedule?from=" + day(0) + "&to=" + day(31))).status,
+  ).toBe(400);
+  expect(
+    (await call("/public/schedule?from=" + day(0) + "&to=" + day(30))).status,
+  ).toBe(200);
+});

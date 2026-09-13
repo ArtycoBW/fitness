@@ -13,6 +13,7 @@ import { env } from "./config";
 import { requestContext } from "./common/request-context";
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.set("trust proxy", env.TRUST_PROXY_HOPS || false);
   app.useBodyParser("json", { limit: "1mb" });
   app.setGlobalPrefix("api/v1");
   app.use(helmet());

@@ -42,7 +42,13 @@ export class MediaController {
   @Post(":kind/:id")
   @UseInterceptors(
     FileInterceptor("file", {
-      limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+        files: 1,
+        fields: 0,
+        parts: 2,
+        fieldNameSize: 100,
+      },
     }),
   )
   async upload(

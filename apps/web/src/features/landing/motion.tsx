@@ -1,6 +1,5 @@
 "use client";
 import { useEffect } from "react";
-import { gsap } from "gsap";
 export function LandingMotion() {
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -8,22 +7,35 @@ export function LandingMotion() {
     const targets = Array.from(
       document.querySelectorAll<HTMLElement>("[data-reveal]"),
     );
-    const ctx = gsap.context(() => {
-      targets.forEach((el) => gsap.set(el, { opacity: 0, y: 24 }));
-    });
+    let cancelled = false;
+    let engine: typeof import("gsap").gsap | undefined;
+    const show = () =>
+      targets.forEach((el) => {
+        engine?.killTweensOf(el);
+        el.style.removeProperty("opacity");
+        el.style.removeProperty("transform");
+      });
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            gsap.to(entry.target, {
-              opacity: 1,
-              y: 0,
-              duration: 0.85,
-              ease: "power3.out",
-            });
-            observer.unobserve(entry.target);
-          }
-        });
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          void import("gsap").then(({ gsap }) => {
+            if (cancelled || media.matches) return;
+            engine = gsap;
+            gsap.fromTo(
+              entry.target,
+              { opacity: 0, y: 24 },
+              {
+                opacity: 1,
+                y: 0,
+                duration: 0.85,
+                ease: "power3.out",
+                clearProps: "opacity,transform",
+              },
+            );
+          });
+        }
       },
       { threshold: 0.12 },
     );
@@ -31,18 +43,15 @@ export function LandingMotion() {
     const reduce = () => {
       if (media.matches) {
         observer.disconnect();
-        targets.forEach((el) => {
-          gsap.killTweensOf(el);
-          gsap.set(el, { clearProps: "opacity,transform" });
-        });
+        show();
       }
     };
     media.addEventListener("change", reduce);
     return () => {
+      cancelled = true;
       observer.disconnect();
       media.removeEventListener("change", reduce);
-      targets.forEach((el) => gsap.killTweensOf(el));
-      ctx.revert();
+      show();
     };
   }, []);
   return null;

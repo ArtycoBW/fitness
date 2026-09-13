@@ -131,6 +131,16 @@
 .hero-copy {
   max-width: 650px;
 }
+.stride-hero {
+  background-image: url("/media/stride/sprinters.webp");
+  background-size: cover;
+  background-position: center;
+}
+@media (max-width: 767px) {
+  .stride-hero {
+    background-position: 70% center;
+  }
+}
 .hero-kicker {
   font-size: 10px;
   letter-spacing: 0.18em;
@@ -836,7 +846,7 @@
 .footer-wordmark {
   font: 500 clamp(100px, 23vw, 330px)/1 var(--font-manrope);
   letter-spacing: -0.095em;
-  color: #b1dbb81f;
+  color: #7a9b74;
   text-align: center;
   margin: 40px 0;
   overflow: hidden;

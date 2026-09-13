@@ -17,7 +17,11 @@ export class OutboxService {
   private readonly transport = nodemailer.createTransport({
     host: env.SMTP_HOST,
     port: env.SMTP_PORT,
-    secure: false,
+    secure: env.SMTP_SECURE,
+    requireTLS: env.SMTP_REQUIRE_TLS,
+    ...(env.SMTP_USER && env.SMTP_PASSWORD
+      ? { auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } }
+      : {}),
     connectionTimeout: 5000,
     socketTimeout: 10000,
   });

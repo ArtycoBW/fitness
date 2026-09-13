@@ -14,6 +14,7 @@ import { NextSessions } from "@/features/landing/next-sessions";
 import { PublicFooter } from "@/features/landing/footer";
 import { money, visits } from "@/lib/format";
 import "./landing.css";
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Страйд — движение в вашем ритме",
   description:

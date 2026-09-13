@@ -113,7 +113,7 @@ describe.sequential("Club catalog permissions and persistence", () => {
       headers,
       body: form,
     });
-    expect(res.status).toBe(201);
+    expect(res.status, await res.clone().text()).toBe(201);
     const body = await res.json();
     expect(
       (await fetch("http://localhost:4100" + body.url)).headers.get(
