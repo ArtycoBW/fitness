@@ -10,6 +10,7 @@ import {
 } from "@nestjs/common";
 import { Roles, type AuthRequest } from "../auth/access";
 import { MembershipModule } from "../memberships/membership.controller";
+import { BookingCoreModule } from "../bookings/booking-core.service";
 import { PaymentService } from "./payment.service";
 import { InternalPaymentProvider } from "./payment.provider";
 @Roles("OWNER", "ADMIN", "RECEPTION", "CLIENT")
@@ -87,7 +88,7 @@ class PaymentController {
   }
 }
 @Module({
-  imports: [MembershipModule],
+  imports: [MembershipModule, BookingCoreModule],
   controllers: [PaymentController],
   providers: [PaymentService, InternalPaymentProvider],
   exports: [PaymentService],

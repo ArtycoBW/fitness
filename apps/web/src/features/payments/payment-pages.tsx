@@ -408,6 +408,10 @@ function RefundDialog({
       message: string;
       consumed: number;
       reserved: number;
+      bookings?: {
+        id: string;
+        session: { startAt: string; workout: { name: string } };
+      }[];
       reason: string;
     } | null>(null);
   const check = useMutation({
@@ -496,6 +500,18 @@ function RefundDialog({
                 Посещений использовано: {preview.consumed}, зарезервировано:{" "}
                 {preview.reserved}.
               </p>
+              {!!preview.bookings?.length && (
+                <>
+                  <p>Будут отменены записи:</p>
+                  <ul className="impact-list">
+                    {preview.bookings.map((b) => (
+                      <li key={b.id}>
+                        {b.session.workout.name} · {dateTime(b.session.startAt)}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           )}
           {(check.error || save.error) && (

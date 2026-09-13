@@ -31,6 +31,7 @@ enum UserStatus {
 }
 
 model User {
+  notifications Notification[]
   id              String          @id @default(uuid()) @db.Uuid
   email           String          @unique
   name            String
@@ -106,6 +107,8 @@ model StaffInvite {
 }
 
 model ClientProfile {
+  bookings Booking[]
+  occupancies ClientOccupancy[]
   memberships   Membership[]
   orders        Order[]
   email         String?
@@ -271,6 +274,7 @@ model SessionSeries {
 }
 
 model ScheduledSession {
+  bookings Booking[]
   id               String            @id @default(uuid()) @db.Uuid
   seriesId         String?           @db.Uuid
   occurrenceDate   String?
@@ -386,6 +390,7 @@ model Order {
 }
 
 model Membership {
+  bookings Booking[]
   id            String                @id @default(uuid()) @db.Uuid
   clientId      String                @db.Uuid
   planVersionId String                @db.Uuid
@@ -510,4 +515,64 @@ model PaymentConfirmation {
   issuedAt DateTime @default(now())
   immutableSnapshot Json
   payment PaymentAttempt @relation(fields:[paymentId],references:[id],onDelete:Restrict)
+}
+
+model Booking {
+  id String @id @default(uuid()) @db.Uuid
+  clientId String @db.Uuid
+  sessionId String @db.Uuid
+  membershipId String @db.Uuid
+  status String
+  balanceState String @default("NONE")
+  version Int @default(1)
+  queuedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reason String?
+  attendanceAt DateTime?
+  client ClientProfile @relation(fields:[clientId],references:[id],onDelete:Restrict)
+  session ScheduledSession @relation(fields:[sessionId],references:[id],onDelete:Restrict)
+  membership Membership @relation(fields:[membershipId],references:[id],onDelete:Restrict)
+  occupancy ClientOccupancy?
+  events BookingEvent[]
+  @@unique([clientId,sessionId])
+  @@index([sessionId,status,queuedAt,id])
+  @@index([membershipId,status])
+  @@index([clientId,createdAt])
+}
+model BookingEvent {
+  id String @id @default(uuid()) @db.Uuid
+  bookingId String @db.Uuid
+  eventKey String @unique
+  fromStatus String?
+  toStatus String
+  actorId String? @db.Uuid
+  reason String?
+  createdAt DateTime @default(now())
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+}
+model ClientOccupancy {
+  id String @id @default(uuid()) @db.Uuid
+  clientId String @db.Uuid
+  bookingId String @unique @db.Uuid
+  startAt DateTime
+  endAt DateTime
+  active Boolean @default(true)
+  client ClientProfile @relation(fields:[clientId],references:[id],onDelete:Restrict)
+  booking Booking @relation(fields:[bookingId],references:[id],onDelete:Restrict)
+  @@index([clientId,startAt,endAt])
+}
+model Notification {
+ id String @id @default(uuid()) @db.Uuid
+ recipientId String @db.Uuid
+ type String
+ title String
+ text String
+ href String
+ eventKey String
+ createdAt DateTime @default(now())
+ readAt DateTime?
+ recipient User @relation(fields:[recipientId],references:[id],onDelete:Restrict)
+ @@unique([recipientId,eventKey])
+ @@index([recipientId,readAt,createdAt])
 }

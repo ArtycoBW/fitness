@@ -24,6 +24,7 @@ import {
   refundRequest,
 } from "./payment.schema";
 import { InternalPaymentProvider } from "./payment.provider";
+import { BookingCore } from "../bookings/booking-core.service";
 const pending = ["PROCESSING", "UNKNOWN"];
 const paymentInclude = {
   order: {
@@ -57,6 +58,7 @@ export class PaymentService {
     private readonly plans: MembershipService,
     private readonly rights: EntitlementService,
     private readonly provider: InternalPaymentProvider,
+    private readonly bookings: BookingCore = new BookingCore(db),
   ) {}
   scope(auth: Principal, clientId: string) {
     if (!staff(auth) && auth.clientId !== clientId)
@@ -455,6 +457,10 @@ export class PaymentService {
         membershipId: c.m.id,
         consumed: c.consumed,
         reserved: c.reserved,
+        bookings:
+          c.action === "CANCEL"
+            ? await this.bookings.refundBookings(tx, c.m.id)
+            : [],
         message:
           c.action === "CANCEL"
             ? "Абонемент будет прекращён после подтверждения возврата"
@@ -473,6 +479,7 @@ export class PaymentService {
       dto,
       async (tx) => {
         const c = await this.refundCalculation(tx, id, dto);
+        await this.bookings.locks(tx, [c.m.clientId], []);
         const m = await this.rights.lock(tx, c.m.id);
         if (m.version !== dto.membershipVersion)
           fail(
@@ -543,6 +550,9 @@ export class PaymentService {
     const m = await tx.membership.findUniqueOrThrow({
       where: { orderId: p.orderId },
     });
+    await this.bookings.locks(tx, [m.clientId], []);
+    if (result === "SUCCEEDED" && r.entitlementAction === "CANCEL")
+      await this.bookings.cancelMembership(tx, m.id, r.requestedBy, r.reason);
     await this.rights.lock(tx, m.id);
     const otherHold = await tx.refund.count({
       where: {

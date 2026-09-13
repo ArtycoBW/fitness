@@ -14,12 +14,18 @@ require("dotenv").config({ quiet: true });
     );
   source.pathname = "/postgres";
   const pool = new Pool({ connectionString: source.href });
+  const guard = await pool.connect();
+  const locked = await guard.query(
+    "SELECT pg_try_advisory_lock(hashtext($1)) AS locked",
+    ["fitness-integration:" + name],
+  );
+  if (!locked.rows[0].locked)
+    throw new Error("Integration tests are already running for this database");
   const exists = await pool.query(
     "SELECT 1 FROM pg_database WHERE datname=$1",
     [name],
   );
   if (!exists.rowCount) await pool.query('CREATE DATABASE "' + name + '"');
-  await pool.end();
   source.pathname = "/" + name;
   const env = {
     ...process.env,
@@ -40,6 +46,8 @@ require("dotenv").config({ quiet: true });
     ),
     ["run"],
   );
+  guard.release();
+  await pool.end();
   process.exit(result.status || 0);
 })().catch((e) => {
   console.error(e.message);

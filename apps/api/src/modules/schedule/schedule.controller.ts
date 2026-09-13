@@ -11,9 +11,17 @@ import {
 import { AuthRequest, Public, Roles } from "../auth/access";
 import { ScheduleService } from "./schedule.service";
 import { ResourceModule } from "./resource.service";
+import { BookingCoreModule } from "../bookings/booking-core.service";
 @Controller()
 export class ScheduleController {
   constructor(private readonly service: ScheduleService) {}
+  @Roles("OWNER", "ADMIN") @Post("schedule/:id/cancel-preview") cancelPreview(
+    @Param("id") id: string,
+    @Body() b: unknown,
+    @Req() r: AuthRequest,
+  ) {
+    return this.service.cancel(r.auth, id, b, undefined, true);
+  }
   @Public() @Get("public/schedule") publicList(@Query() q: unknown) {
     return this.service.list(q);
   }
@@ -76,7 +84,7 @@ export class ScheduleController {
   }
 }
 @Module({
-  imports: [ResourceModule],
+  imports: [ResourceModule, BookingCoreModule],
   controllers: [ScheduleController],
   providers: [ScheduleService],
   exports: [ScheduleService],

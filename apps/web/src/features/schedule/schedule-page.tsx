@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar } from "./calendar";
 import { SessionEditor } from "./session-editor";
+import { BookingPicker } from "@/features/bookings/booking-picker";
 import {
   type Session,
   statusNames,
@@ -58,12 +59,29 @@ export function SchedulePage({
       proposal?: { startAt: string; endAt: string };
     } | null>(null),
     [cancelling, setCancelling] = useState(false);
+  const [cancelImpact, setCancelImpact] = useState<{
+    body: unknown;
+    count: number;
+    bookings: { id: string; client: { name: string } }[];
+  } | null>(null);
+  const checkCancel = useMutation({
+    mutationFn: async (body: unknown) => ({
+      body,
+      ...(await post<{
+        count: number;
+        bookings: { id: string; client: { name: string } }[];
+      }>("/schedule/" + selected + "/cancel-preview", body)),
+    }),
+    onSuccess: setCancelImpact,
+  });
   const filters = {
     from: days[0]!,
     to: days[days.length - 1]!,
     ...(params.get("trainerId") ? { trainerId: params.get("trainerId")! } : {}),
     ...(params.get("hallId") ? { hallId: params.get("hallId")! } : {}),
     ...(params.get("workoutId") ? { workoutId: params.get("workoutId")! } : {}),
+    ...(params.get("level") ? { level: params.get("level")! } : {}),
+    ...(params.get("available") ? { available: params.get("available")! } : {}),
   };
   const {
     data: sessions,
@@ -78,7 +96,7 @@ export function SchedulePage({
           new URLSearchParams(filters),
         { signal },
       ),
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
   const { data: resources } = useQuery({
     queryKey: ["schedule-filter-resources"],
@@ -99,6 +117,7 @@ export function SchedulePage({
         (area === "public" ? "/public" : "") + "/schedule/" + selected,
       ),
     enabled: !!selected,
+    refetchInterval: 10000,
   });
   const cancel = useMutation({
     mutationFn: (body: unknown) =>
@@ -110,7 +129,11 @@ export function SchedulePage({
       toast.success("Занятие отменено");
     },
   });
-  const open = (s: Session) => set("session", s.id);
+  const open = (s: Session) => {
+    setCancelling(false);
+    setCancelImpact(null);
+    set("session", s.id);
+  };
   return (
     <>
       <div className="page-heading heading-actions">
@@ -199,6 +222,26 @@ export function SchedulePage({
               ))}
             </select>
           ))}
+        <select
+          aria-label="Уровень подготовки"
+          className="form-select"
+          value={params.get("level") ?? ""}
+          onChange={(e) => set("level", e.target.value)}
+        >
+          <option value="">Любой уровень</option>
+          <option value="ALL">Для всех</option>
+          <option value="BEGINNER">Начальный</option>
+          <option value="INTERMEDIATE">Средний</option>
+          <option value="ADVANCED">Продвинутый</option>
+        </select>
+        <label className="inline-check">
+          <input
+            type="checkbox"
+            checked={params.get("available") === "true"}
+            onChange={(e) => set("available", e.target.checked ? "true" : "")}
+          />
+          Есть места
+        </label>
       </div>
       {error ? (
         <p role="alert" className="form-error">
@@ -274,7 +317,7 @@ export function SchedulePage({
         <SessionEditor {...editing} onClose={() => setEditing(null)} />
       )}
       <Dialog open={!!selected} onOpenChange={(o) => !o && set("session", "")}>
-        <DialogContent>
+        <DialogContent className="session-dialog">
           <DialogHeader>
             <DialogTitle>{session?.workout.name ?? "Занятие"}</DialogTitle>
             <DialogDescription>
@@ -329,25 +372,35 @@ export function SchedulePage({
                     Отменить занятие
                   </Button>
                 </div>
-              ) : area === "public" && session.status === "PUBLISHED" ? (
-                <Button asChild>
+              ) : null}
+              {area !== "public" && (
+                <Button variant="outline" asChild>
                   <Link
                     href={
-                      "/login?next=" +
-                      encodeURIComponent("/schedule?session=" + session.id)
+                      "/" +
+                      area +
+                      "/bookings?sessionId=" +
+                      session.id +
+                      "&upcoming=false"
                     }
                   >
-                    Перейти к записи
+                    Участники занятия
                   </Link>
                 </Button>
-              ) : null}
+              )}
+              {session.status === "PUBLISHED" &&
+                area !== "trainer" &&
+                !cancelling && (
+                  <BookingPicker key={session.id} session={session} />
+                )}
               {cancelling && (
                 <form
                   className="form-stack"
+                  onChange={() => setCancelImpact(null)}
                   onSubmit={(e) => {
                     e.preventDefault();
                     const f = new FormData(e.currentTarget);
-                    cancel.mutate({
+                    checkCancel.mutate({
                       version: session.version,
                       scope: f.get("scope"),
                       reason: f.get("reason"),
@@ -365,12 +418,36 @@ export function SchedulePage({
                   </select>
                   <Label htmlFor="reason">Причина отмены</Label>
                   <Input id="reason" name="reason" required minLength={3} />
-                  {cancel.error && (
-                    <p className="form-error">{cancel.error.message}</p>
+                  {(cancel.error || checkCancel.error) && (
+                    <p className="form-error">
+                      {cancel.error?.message ?? checkCancel.error?.message}
+                    </p>
                   )}
-                  <Button disabled={cancel.isPending}>
-                    Подтвердить отмену
-                  </Button>
+                  {cancelImpact && (
+                    <div className="notice">
+                      <p>
+                        Занятий к отмене: {cancelImpact.count}. Посещения
+                        вернутся в остаток.
+                      </p>
+                      <ul className="impact-list">
+                        {cancelImpact.bookings.map((b) => (
+                          <li key={b.id}>{b.client.name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <div className="button-row">
+                    <Button variant="outline" disabled={checkCancel.isPending}>
+                      Проверить последствия
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={!cancelImpact || cancel.isPending}
+                      onClick={() => cancel.mutate(cancelImpact?.body)}
+                    >
+                      Подтвердить отмену
+                    </Button>
+                  </div>
                 </form>
               )}
             </>

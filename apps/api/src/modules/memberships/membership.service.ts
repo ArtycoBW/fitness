@@ -21,6 +21,14 @@ import {
 import { EntitlementService } from "./entitlement.service";
 @Injectable()
 export class MembershipService {
+  async lockClient(tx: Tx, id: string) {
+    const m = await tx.membership.findUnique({
+      where: { id },
+      select: { clientId: true },
+    });
+    if (!m) fail("NOT_FOUND", "Абонемент не найден", 404);
+    await tx.$queryRaw`SELECT id FROM "ClientProfile" WHERE id=${m.clientId}::uuid FOR UPDATE`;
+  }
   constructor(
     private readonly db: Db,
     private readonly rights: EntitlementService,
@@ -242,6 +250,7 @@ export class MembershipService {
       key,
       dto,
       async (tx) => {
+        await this.lockClient(tx, id);
         const m = await this.rights.lock(tx, id);
         this.scope(auth, m.clientId);
         if (m.refundHold)
@@ -275,6 +284,19 @@ export class MembershipService {
           .reduce((sum, f) => sum + f.days, 0);
         if (used + days > terms.freezeQuotaDays)
           fail("FREEZE_QUOTA", "Недостаточно дней заморозки");
+        if (
+          await tx.booking.count({
+            where: {
+              membershipId: id,
+              status: { in: ["CONFIRMED", "WAITLISTED"] },
+              session: { startAt: { lt: endAt }, endAt: { gt: startAt } },
+            },
+          })
+        )
+          fail(
+            "FREEZE_BOOKINGS",
+            "На этот период есть записи. Сначала отмените их",
+          );
         const freeze = await tx.membershipFreeze.create({
           data: { membershipId: id, startAt, endAt, days, reason: dto.reason },
         });
@@ -315,6 +337,7 @@ export class MembershipService {
       key,
       dto,
       async (tx) => {
+        await this.lockClient(tx, id);
         const m = await this.rights.lock(tx, id);
         this.scope(auth, m.clientId);
         if (m.refundHold)
@@ -338,6 +361,25 @@ export class MembershipService {
             );
         } else if (f.startAt < now)
           fail("FREEZE_STARTED", "Начавшуюся заморозку можно только сократить");
+        const shortenedEnd = new Date(
+          m.endAt.getTime() - (f.days - days) * DAY,
+        );
+        if (
+          await tx.booking.count({
+            where: {
+              membershipId: id,
+              status: { in: ["CONFIRMED", "WAITLISTED"] },
+              session: {
+                endAt: { gt: shortenedEnd },
+                startAt: { gt: new Date() },
+              },
+            },
+          })
+        )
+          fail(
+            "FREEZE_BOOKINGS",
+            "Сокращение срока затронет будущие записи. Сначала отмените их",
+          );
         await tx.membershipFreeze.update({
           where: { id: freezeId },
           data: { endAt, days, status: days ? "ACTIVE" : "CANCELLED" },
@@ -372,6 +414,7 @@ export class MembershipService {
       key,
       dto,
       async (tx) => {
+        await this.lockClient(tx, id);
         const m = await this.rights.lock(tx, id);
         if (m.cancelledAt || this.rights.terms(m).visitLimit === null)
           fail("ADJUST_UNAVAILABLE", "Корректировка недоступна");

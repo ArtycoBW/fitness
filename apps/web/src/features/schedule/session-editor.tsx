@@ -35,9 +35,11 @@ export function SessionEditor({
 }) {
   const qc = useQueryClient();
   const [series, setSeries] = useState(false),
-    [preview, setPreview] = useState<{ body: unknown; count: number } | null>(
-      null,
-    ),
+    [preview, setPreview] = useState<{
+      body: unknown;
+      count: number;
+      bookings?: { id: string; client: { name: string } }[];
+    } | null>(null),
     [key] = useState(() => crypto.randomUUID());
   const { data: r, error } = useQuery({
     queryKey: ["schedule-resources"],
@@ -55,7 +57,10 @@ export function SessionEditor({
   });
   const check = useMutation({
     mutationFn: async (body: unknown) => {
-      const result = await post<{ count: number }>(
+      const result = await post<{
+        count: number;
+        bookings?: { id: string; client: { name: string } }[];
+      }>(
         session
           ? "/schedule/" + session.id + "/preview"
           : series
@@ -63,7 +68,7 @@ export function SessionEditor({
             : "/schedule/preview",
         body,
       );
-      return { body, count: result.count };
+      return { body, count: result.count, bookings: result.bookings };
     },
     onSuccess: setPreview,
   });
@@ -345,6 +350,16 @@ export function SessionEditor({
             {preview && (
               <div className="notice">
                 Пересечений не найдено. Будет сохранено занятий: {preview.count}
+                {!!preview.bookings?.length && (
+                  <>
+                    <p>Изменение затронет записи:</p>
+                    <ul className="impact-list">
+                      {preview.bookings.map((b) => (
+                        <li key={b.id}>{b.client.name}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 .
               </div>
             )}

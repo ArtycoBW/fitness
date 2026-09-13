@@ -17,7 +17,15 @@ import {
 import { ResourceService } from "./resource.service";
 import { midnight, DAY } from "../memberships/membership.schema";
 import type { Prisma } from "../../generated/prisma/client";
+import { BookingCore } from "../bookings/booking-core.service";
 const include = {
+  _count: {
+    select: {
+      bookings: {
+        where: { status: { in: ["CONFIRMED", "ATTENDED", "NO_SHOW"] } },
+      },
+    },
+  },
   workout: true,
   hall: { select: { id: true, name: true, capacity: true } },
   trainer: {
@@ -29,6 +37,7 @@ export class ScheduleService {
   constructor(
     private readonly db: Db,
     private readonly resources: ResourceService,
+    private readonly bookings: BookingCore = new BookingCore(db),
   ) {}
   async createOne(
     tx: Tx,
@@ -200,10 +209,18 @@ export class ScheduleService {
       orderBy: { startAt: "asc" },
       take: 1000,
     });
-    return rows.map((s) => this.present(s));
+    return rows
+      .map((s) => this.present(s))
+      .filter((s) => q.available !== "true" || s.freePlaces > 0);
   }
   present<
-    T extends { status: string; startAt: Date; endAt: Date; capacity: number },
+    T extends {
+      status: string;
+      startAt: Date;
+      endAt: Date;
+      capacity: number;
+      _count?: { bookings: number };
+    },
   >(s: T) {
     const now = new Date();
     const status =
@@ -214,7 +231,11 @@ export class ScheduleService {
             ? "IN_PROGRESS"
             : "PUBLISHED"
         : s.status;
-    return { ...s, status, freePlaces: s.capacity };
+    return {
+      ...s,
+      status,
+      freePlaces: Math.max(0, s.capacity - (s._count?.bookings ?? 0)),
+    };
   }
   async detail(id: string, auth?: Principal) {
     parse(uuid, id);
@@ -300,6 +321,8 @@ export class ScheduleService {
             : parse(policySchema, s.policySnapshot),
       }));
       const ids = sessions.map((s) => s.id);
+      const affectedBookings = await this.bookings.affected(tx, ids);
+      await this.bookings.validateMove(tx, changed, affectedBookings);
       for (const item of changed) {
         if (item.slot.startAt <= new Date())
           fail("SESSION_PAST", "Нельзя перенести занятие в прошлое");
@@ -314,6 +337,14 @@ export class ScheduleService {
       if (preview)
         return {
           count: changed.length,
+          bookings: await tx.booking.findMany({
+            where: { id: { in: affectedBookings.map((b) => b.id) } },
+            select: {
+              id: true,
+              status: true,
+              client: { select: { name: true } },
+            },
+          }),
           items: changed.map((i) => ({
             id: i.old.id,
             startAt: i.slot.startAt,
@@ -354,51 +385,76 @@ export class ScheduleService {
           where: { id: initial.seriesId },
           data: { version: { increment: 1 } },
         });
+      await this.bookings.moveOccupancy(tx, affectedBookings);
       return { count: result.length, items: result };
     };
     return preview
       ? atomic(this.db, run)
       : idempotent(this.db, auth.id, "session-edit:" + id, key, dto, run);
   }
-  async cancel(auth: Principal, id: string, body: unknown, key?: string) {
+  async cancel(
+    auth: Principal,
+    id: string,
+    body: unknown,
+    key?: string,
+    preview = false,
+  ) {
     parse(uuid, id);
     const dto = parse(cancelSchema, body);
-    return idempotent(
-      this.db,
-      auth.id,
-      "session-cancel:" + id,
-      key,
-      dto,
-      async (tx) => {
-        const { sessions } = await this.affected(
-          tx,
-          id,
-          dto.scope,
-          dto.version,
-        );
-        const ids = sessions.map((s) => s.id);
-        await this.resources.release(tx, ids);
-        for (const s of sessions) {
-          await tx.scheduledSession.update({
-            where: { id: s.id },
-            data: {
-              status: "CANCELLED",
-              cancelledReason: dto.reason,
-              version: { increment: 1 },
+    const run = async (tx: Tx) => {
+      const { sessions } = await this.affected(tx, id, dto.scope, dto.version);
+      const ids = sessions.map((s) => s.id);
+      if (preview) {
+        const bookings = await tx.booking.findMany({
+          where: {
+            sessionId: { in: ids },
+            status: {
+              in: [
+                "CONFIRMED",
+                "WAITLISTED",
+                "CANCELLED_LATE",
+                "ATTENDED",
+                "NO_SHOW",
+              ],
             },
-          });
-          await audit(
-            tx,
-            auth.id,
-            "SESSION_CANCELLED",
-            "Session",
-            s.id,
-            {},
-            dto.reason,
-          );
-        }
-        return { count: ids.length, message: "Занятия отменены" };
-      },
-    );
+          },
+          select: {
+            id: true,
+            status: true,
+            client: { select: { name: true } },
+          },
+        });
+        return {
+          count: ids.length,
+          bookings,
+          message: "Записи будут отменены, резервы и списания возвращены",
+        };
+      }
+      await this.bookings.cancelSessions(tx, ids, auth.id, dto.reason);
+      await this.resources.release(tx, ids);
+      for (const s of sessions) {
+        await tx.scheduledSession.update({
+          where: { id: s.id },
+          data: {
+            status: "CANCELLED",
+            cancelledReason: dto.reason,
+            version: { increment: 1 },
+          },
+        });
+        await audit(
+          tx,
+          auth.id,
+          "SESSION_CANCELLED",
+          "Session",
+          s.id,
+          {},
+          dto.reason,
+        );
+      }
+      return { count: ids.length, message: "Занятия отменены" };
+    };
+    return preview
+      ? atomic(this.db, run)
+      : idempotent(this.db, auth.id, "session-cancel:" + id, key, dto, run);
   }
 }

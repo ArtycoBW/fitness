@@ -242,6 +242,24 @@ export class CatalogService {
       fail("FORBIDDEN", "Действие доступно администратору", 403);
     return atomic(this.db, async (tx) => {
       const where = { id, version: data.version };
+      if (kind === "clients" && data.archived) {
+        await tx.$queryRaw`SELECT id FROM "ClientProfile" WHERE id=${id}::uuid FOR UPDATE`;
+        const obligations = await tx.membership.count({
+          where: { clientId: id, cancelledAt: null, endAt: { gt: new Date() } },
+        });
+        const bookings = await tx.booking.count({
+          where: {
+            clientId: id,
+            status: { in: ["CONFIRMED", "WAITLISTED"] },
+            session: { endAt: { gt: new Date() } },
+          },
+        });
+        if (obligations || bookings)
+          fail(
+            "CLIENT_OBLIGATIONS",
+            "У клиента есть действующие абонементы или будущие записи",
+          );
+      }
       const update = {
         archivedAt: data.archived ? new Date() : null,
         version: { increment: 1 },
