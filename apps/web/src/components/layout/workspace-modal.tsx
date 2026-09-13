@@ -81,6 +81,7 @@ export function WorkspaceModal({
     >
       <DialogContent
         className="workspace-modal"
+        data-view={overlay?.kind}
         onClickCapture={(event) => {
           const link = (event.target as HTMLElement).closest("a");
           if (
@@ -110,32 +111,36 @@ export function WorkspaceModal({
           }
         }}
       >
-        <DialogHeader>
+        <DialogHeader
+          className={overlay?.kind === "schedule" ? "sr-only" : undefined}
+        >
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="sr-only">
             Расписание, абонементы и услуги клуба
           </DialogDescription>
         </DialogHeader>
-        {overlay && (
-          <LocalViewState
-            key={overlay.kind + (overlay.search ?? "")}
-            initialSearch={overlay.search}
-          >
-            {overlay.kind === "schedule" ? (
-              <Schedule area="public" />
-            ) : overlay.kind === "memberships" ? (
-              payment ? (
-                <Confirmation id={payment} embedded />
-              ) : order ? (
-                <Checkout id={order} embedded onComplete={complete} />
+        <div className="workspace-modal-content">
+          {overlay && (
+            <LocalViewState
+              key={overlay.kind + (overlay.search ?? "")}
+              initialSearch={overlay.search}
+            >
+              {overlay.kind === "schedule" ? (
+                <Schedule area="public" />
+              ) : overlay.kind === "memberships" ? (
+                payment ? (
+                  <Confirmation id={payment} embedded />
+                ) : order ? (
+                  <Checkout id={order} embedded onComplete={complete} />
+                ) : (
+                  <Plans embedded onOrder={setOrder} />
+                )
               ) : (
-                <Plans embedded onOrder={setOrder} />
-              )
-            ) : (
-              <Notifications />
-            )}
-          </LocalViewState>
-        )}
+                <Notifications />
+              )}
+            </LocalViewState>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

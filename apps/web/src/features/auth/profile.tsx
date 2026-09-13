@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { api, type User } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { normalizePhone, passwordError } from "@fitness/validation";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/image-upload";
 import { dateTime } from "@/lib/format";
@@ -25,20 +28,27 @@ export function Profile() {
         "/auth/sessions",
       ),
   });
-  const [pending, setPending] = useState(false);
+  const [pending, setPending] = useState(false),
+    [passwordPending, setPasswordPending] = useState(false),
+    [passwordKey, setPasswordKey] = useState(0);
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
     const fields = new FormData(event.currentTarget);
     try {
-      await api("/me", {
+      const phone = fields.get("phone")
+        ? normalizePhone(String(fields.get("phone")))
+        : null;
+      if (fields.get("phone") && !phone)
+        throw new Error("Введите номер телефона полностью");
+      const updated = await api<User>("/me", {
         method: "PATCH",
         body: JSON.stringify({
           name: fields.get("name"),
-          ...(fields.get("phone") ? { phone: fields.get("phone") } : {}),
+          ...(phone ? { phone } : {}),
         }),
       });
-      await qc.invalidateQueries({ queryKey: ["me"] });
+      qc.setQueryData(["me"], updated);
       toast.success("Профиль сохранён");
     } catch (e) {
       toast.error((e as Error).message);
@@ -50,6 +60,12 @@ export function Profile() {
     event.preventDefault();
     const form = event.currentTarget;
     const fields = new FormData(form);
+    const issue = passwordError(String(fields.get("password")));
+    if (issue) {
+      toast.error(issue);
+      return;
+    }
+    setPasswordPending(true);
     try {
       await api("/me/password", {
         method: "PUT",
@@ -59,10 +75,13 @@ export function Profile() {
         }),
       });
       form.reset();
+      setPasswordKey((v) => v + 1);
       await qc.invalidateQueries({ queryKey: ["sessions"] });
       toast.success("Пароль обновлён");
     } catch (e) {
       toast.error((e as Error).message);
+    } finally {
+      setPasswordPending(false);
     }
   }
   if (error) return <p className="form-error">{error.message}</p>;
@@ -96,7 +115,7 @@ export function Profile() {
             {user.clientId && (
               <div className="field">
                 <Label htmlFor="phone">Телефон</Label>
-                <Input
+                <PhoneInput
                   id="phone"
                   name="phone"
                   type="tel"
@@ -112,10 +131,10 @@ export function Profile() {
         </section>
         <section className="surface">
           <h2>Безопасность</h2>
-          <form className="form-stack" onSubmit={password}>
+          <form className="form-stack" onSubmit={password} key={passwordKey}>
             <div className="field">
               <Label htmlFor="current-password">Текущий пароль</Label>
-              <Input
+              <PasswordInput
                 id="current-password"
                 name="currentPassword"
                 type="password"
@@ -126,17 +145,19 @@ export function Profile() {
             </div>
             <div className="field">
               <Label htmlFor="new-password">Новый пароль</Label>
-              <Input
+              <PasswordInput
                 id="new-password"
+                strength
                 name="password"
                 type="password"
                 autoComplete="new-password"
                 required
                 minLength={12}
               />
-              <p className="field-hint">Не менее 12 символов</p>
             </div>
-            <Button variant="outline">Изменить пароль</Button>
+            <Button variant="outline" disabled={passwordPending}>
+              {passwordPending ? "Обновляем пароль…" : "Изменить пароль"}
+            </Button>
           </form>
           <h3 className="mt-8 mb-3">Активные сессии</h3>
           <div className="space-y-3 profile-sessions">

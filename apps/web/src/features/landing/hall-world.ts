@@ -23,7 +23,7 @@ export const CONFIG = {
   clearcoat: 0.35,
   maxDpr: 1.5,
   fov: 62,
-  camera: [2.5, 2.3, 5.8] as const,
+  camera: [2, 2.1, 4.8] as const,
 };
 
 export function mountHallScene(
@@ -52,10 +52,13 @@ export function mountHallScene(
   controls.dampingFactor = 0.085;
   controls.enablePan = false;
   controls.enableZoom = false;
-  controls.minAzimuthAngle = -0.48;
-  controls.maxAzimuthAngle = 0.52;
-  controls.minPolarAngle = 1.13;
+  controls.minAzimuthAngle = -0.45;
+  controls.maxAzimuthAngle = 0.45;
+  controls.minPolarAngle = 1.35;
   controls.maxPolarAngle = 1.55;
+  controls.minDistance = controls.maxDistance = camera.position.distanceTo(
+    controls.target,
+  );
   controls.rotateSpeed = 0.45;
   // Vertical swipes and wheel remain page scrolling; horizontal drag explores the room.
   controls.touches.ONE = THREE.TOUCH.ROTATE;
@@ -541,6 +544,8 @@ export function mountHallScene(
       groups.forEach((g, i) => {
         g.visible = i === index;
       });
+      camera.fov = CONFIG.fov;
+      camera.updateProjectionMatrix();
       controls.reset();
       wake();
     },
@@ -565,7 +570,7 @@ export function mountHallScene(
       wake();
     },
     zoom(delta: number) {
-      camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 42, 72);
+      camera.fov = THREE.MathUtils.clamp(camera.fov + delta, 42, 64);
       camera.updateProjectionMatrix();
       wake();
     },

@@ -118,9 +118,9 @@ export function Checkout({
                 расписании.
               </p>
             </section>
-            <div>
-              {pending ? (
-                <section className="payment-form payment-pending">
+            <div className="payment-stage" aria-busy={pending}>
+              {pending && (
+                <section className="payment-processing-overlay" role="status">
                   <LoaderCircle className="spin" size={34} />
                   <h2>
                     {payment
@@ -135,8 +135,10 @@ export function Checkout({
                     <Link href="/account/payments">История оплат</Link>
                   </Button>
                 </section>
-              ) : o.status !== "PENDING" ||
-                new Date(o.expiresAt) <= new Date() ? (
+              )}
+              {!pending &&
+              (o.status !== "PENDING" ||
+                new Date(o.expiresAt) <= new Date()) ? (
                 <section className="payment-form">
                   <h2>Заказ закрыт</h2>
                   <p>Выберите актуальный абонемент, чтобы оформить покупку.</p>
@@ -146,7 +148,6 @@ export function Checkout({
                 </section>
               ) : (
                 <ModernPaymentForm
-                  key={payment?.id ?? "first"}
                   amountMinor={o.totalMinor}
                   pending={pending}
                   error={

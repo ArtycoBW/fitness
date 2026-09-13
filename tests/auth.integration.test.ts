@@ -76,6 +76,30 @@ afterAll(async () => {
   await db.$disconnect();
 });
 describe.sequential("Authentication with PostgreSQL", () => {
+  it("enforces the same new-password rules on registration, reset and invitation", async () => {
+    for (const path of [
+      "/auth/register",
+      "/auth/reset-password",
+      "/auth/accept-invite",
+    ]) {
+      const result = await call(
+        path,
+        "POST",
+        {
+          ...(path.endsWith("register")
+            ? {
+                email: "policy-" + randomUUID() + "@example.com",
+                name: "Проверка",
+                consent: true,
+              }
+            : { token: "a".repeat(64) }),
+          password: "password123456!",
+        },
+        false,
+      );
+      expect(result.res.status).toBe(400);
+    }
+  });
   it("requires session and rejects foreign origins", async () => {
     expect((await call("/auth/me")).res.status).toBe(401);
     expect(
@@ -155,13 +179,30 @@ describe.sequential("Authentication with PostgreSQL", () => {
       (
         await call("/me", "PATCH", {
           name: "Анна Обновлённая",
-          phone: "+79991234567",
+          phone: "+7 (999) 123-45-67",
         })
       ).res.status,
     ).toBe(200);
     expect((await db.user.findUnique({ where: { id: userId } })).name).toBe(
       "Анна Обновлённая",
     );
+    expect(
+      (await db.clientProfile.findUnique({ where: { userId } })).phone,
+    ).toBe("+79991234567");
+    expect(
+      (await call("/me", "PATCH", { phone: "+7 (999) 12" })).res.status,
+    ).toBe(400);
+  });
+  it("rejects weak replacement passwords without changing the current credential", async () => {
+    expect(
+      (
+        await call("/me/password", "PUT", {
+          currentPassword: password,
+          password: "Password-123456!",
+        })
+      ).res.status,
+    ).toBe(400);
+    expect(await login()).toBe(201);
   });
   it("resets password once and invalidates old sessions", async () => {
     await call("/auth/forgot-password", "POST", { email }, false);

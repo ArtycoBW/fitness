@@ -21,7 +21,7 @@ test("account overlays preserve workspace, filters and card layout", async ({
   await page.getByRole("link", { name: "Расписание", exact: true }).click();
   const modal = page.getByRole("dialog");
   await expect(
-    modal.getByRole("heading", { name: "Расписание клуба" }),
+    modal.getByRole("heading", { name: "Расписание занятий" }),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/account$/);
   await modal.getByLabel("Дата расписания").click();

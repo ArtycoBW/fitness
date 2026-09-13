@@ -58,13 +58,24 @@ export function Calendar({
           const events = sessions
             .filter((s) => localDay(new Date(s.startAt)) === day)
             .sort((a, b) => a.startAt.localeCompare(b.startAt));
-          const laneEnds: number[] = [];
+          let laneEnds: number[] = [],
+            cluster = { lanes: 0 },
+            clusterEnd = 0;
           const placements = events.map((s) => {
             const start = minutes(s.startAt);
+            if (start >= clusterEnd) {
+              laneEnds = [];
+              cluster = { lanes: 0 };
+            }
             let lane = laneEnds.findIndex((end) => end <= start);
             if (lane < 0) lane = laneEnds.length;
             laneEnds[lane] = minutes(s.endAt) || 1440;
-            return { s, lane };
+            clusterEnd = Math.max(
+              start >= clusterEnd ? 0 : clusterEnd,
+              laneEnds[lane]!,
+            );
+            cluster.lanes = laneEnds.length;
+            return { s, lane, cluster };
           });
           return (
             <div
@@ -110,7 +121,7 @@ export function Calendar({
                 );
               }}
             >
-              {placements.map(({ s, lane }) => (
+              {placements.map(({ s, lane, cluster }) => (
                 <Button
                   variant="ghost"
                   key={s.id}
@@ -125,8 +136,8 @@ export function Calendar({
                         1.2 -
                         4,
                     ),
-                    left: "calc(" + (lane * 100) / laneEnds.length + "% + 3px)",
-                    width: "calc(" + 100 / laneEnds.length + "% - 6px)",
+                    left: "calc(" + (lane * 100) / cluster.lanes + "% + 3px)",
+                    width: "calc(" + 100 / cluster.lanes + "% - 6px)",
                   }}
                   draggable={
                     editable &&

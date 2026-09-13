@@ -55,6 +55,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@fitness/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       '@nestjs/common':
         specifier: 11.2.3
         version: 11.2.3(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -131,6 +134,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@fitness/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.9.1(@standard-schema/spec@1.1.0)(ajv@8.20.0)(class-transformer@0.5.1)(class-validator@0.14.4)(effect@3.20.0)(react-hook-form@7.87.0(react@19.3.0))(valibot@1.4.2(typescript@5.9.3))(zod@4.6.2)
@@ -225,6 +231,12 @@ importers:
       tailwindcss:
         specifier: ^4.2.0
         version: 4.3.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/validation:
+    devDependencies:
       typescript:
         specifier: 5.9.3
         version: 5.9.3

@@ -12,6 +12,8 @@ import { Check } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { passwordError } from "@fitness/validation";
 import { Label } from "@/components/ui/label";
 import { api, post, workspace, type User } from "@/lib/api";
 const schema = z.object({
@@ -78,6 +80,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
       if (mode === "register" && !values.consent) {
         setError("Подтвердите согласие с условиями");
         return;
+      }
+      if (["register", "reset-password", "accept-invite"].includes(mode)) {
+        const issue = passwordError(values.password ?? "");
+        if (issue) {
+          form.setError("password", { message: issue });
+          return;
+        }
       }
       const body =
         mode === "verify-email"
@@ -193,18 +202,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
                       </Link>
                     )}
                   </div>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
+                    strength={mode !== "login"}
                     autoComplete={
                       mode === "login" ? "current-password" : "new-password"
                     }
                     required
                     {...form.register("password")}
                   />
-                  {mode !== "login" && (
-                    <p className="field-hint">Не менее 12 символов</p>
-                  )}
                   {form.formState.errors.password && (
                     <p className="field-error">
                       {form.formState.errors.password.message}

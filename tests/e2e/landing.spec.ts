@@ -19,13 +19,14 @@ test("public landing catalogs, motion controls and contact submission", async ({
     .toBe(true);
   await page.locator("#directions").scrollIntoViewIfNeeded();
   const tabs = page
-    .getByRole("tablist", { name: "Направления тренировок" })
-    .getByRole("tab");
+    .getByRole("group", { name: "Направления тренировок" })
+    .getByRole("button");
   await tabs.first().focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(tabs.nth(1)).toHaveAttribute("aria-pressed", "true");
   await page
-    .getByRole("tabpanel")
+    .locator('.gallery-description[data-active="true"]')
     .getByRole("link", { name: "О направлении" })
     .click();
   await expect(page).toHaveURL(/\/workouts\//);

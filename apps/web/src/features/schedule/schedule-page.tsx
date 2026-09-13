@@ -3,7 +3,12 @@
 import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import {
   Plus,
   ChevronLeft,
@@ -86,20 +91,26 @@ export function SchedulePage({
     ...(params.get("available") ? { available: params.get("available")! } : {}),
   };
   const {
-    data: sessions,
+    data: result,
     error,
     isFetching,
+    isPlaceholderData,
   } = useQuery({
     queryKey: ["schedule", area, filters],
-    queryFn: ({ signal }) =>
-      api<Session[]>(
+    queryFn: async ({ signal }) => ({
+      days,
+      sessions: await api<Session[]>(
         (area === "public" ? "/public" : "") +
           "/schedule?" +
           new URLSearchParams(filters),
         { signal },
       ),
+    }),
+    placeholderData: keepPreviousData,
     refetchInterval: 10000,
   });
+  const sessions = result?.sessions,
+    visibleDays = result?.days ?? days;
   const { data: resources } = useQuery({
     queryKey: ["schedule-filter-resources"],
     queryFn: async () => {
@@ -137,7 +148,7 @@ export function SchedulePage({
     set("session", s.id);
   };
   return (
-    <>
+    <div className="schedule-page">
       <div className="page-heading heading-actions">
         <div>
           <span className="eyebrow">
@@ -257,9 +268,16 @@ export function SchedulePage({
         </div>
       ) : (
         <>
-          <div className="calendar-desktop" aria-busy={isFetching}>
+          <div
+            className="calendar-desktop"
+            aria-busy={isFetching}
+            data-updating={isPlaceholderData}
+          >
+            <div className="schedule-refresh" role="status" aria-live="polite">
+              {isFetching ? "Обновляем расписание…" : ""}
+            </div>
             <Calendar
-              days={days}
+              days={visibleDays}
               sessions={sessions}
               onOpen={open}
               editable={editable}
@@ -268,14 +286,18 @@ export function SchedulePage({
               }
             />
           </div>
-          <div className="schedule-agenda">
+          <div
+            className="schedule-agenda"
+            aria-busy={isFetching}
+            data-updating={isPlaceholderData}
+          >
             {sessions.length === 0 && (
               <div className="empty-state">
                 <h2>В этот период занятий нет</h2>
                 <p>Выберите другие даты или измените фильтры.</p>
               </div>
             )}
-            {days.map((day) => {
+            {visibleDays.map((day) => {
               const rows = sessions.filter(
                 (s) => localDay(new Date(s.startAt)) === day,
               );
@@ -459,6 +481,6 @@ export function SchedulePage({
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

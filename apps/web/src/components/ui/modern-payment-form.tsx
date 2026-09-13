@@ -1,20 +1,26 @@
 "use client";
 import { useState } from "react";
-import { CreditCard, ArrowRight, LockKeyhole } from "lucide-react";
+import { CreditCard, LockKeyhole } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Label } from "./label";
 import { money } from "@/lib/format";
 import { methods } from "@/features/payments/types";
 export function PayMark({ method }: { method: string }) {
+  const src: Record<string, string> = {
+    ALFA_PAY: "alfa-pay",
+    YANDEX_PAY: "yandex-pay",
+    SBER_PAY: "sber-pay",
+  };
   return (
     <span aria-hidden="true" className={"pay-mark " + method.toLowerCase()}>
-      {method === "ALFA_PAY" ? (
-        "А"
-      ) : method === "YANDEX_PAY" ? (
-        "Я"
-      ) : method === "SBER_PAY" ? (
-        "✓"
+      {src[method] ? (
+        <img
+          src={"/media/payments/" + src[method] + ".svg"}
+          alt=""
+          width={94}
+          height={30}
+        />
       ) : (
         <CreditCard size={19} />
       )}
@@ -22,16 +28,7 @@ export function PayMark({ method }: { method: string }) {
   );
 }
 function validCard(n: string) {
-  let sum = 0;
-  for (let i = n.length - 1, even = false; i >= 0; i--, even = !even) {
-    let x = Number(n[i]);
-    if (even) {
-      x *= 2;
-      if (x > 9) x -= 9;
-    }
-    sum += x;
-  }
-  return /^\d{13,19}$/.test(n) && sum % 10 === 0;
+  return /^\d{13,19}$/.test(n);
 }
 export function ModernPaymentForm({
   amountMinor,
@@ -71,7 +68,8 @@ export function ModernPaymentForm({
           </Button>
         ))}
       </div>
-      <button
+      <Button
+        variant="ghost"
         className="card-option"
         type="button"
         aria-pressed={method === "CARD"}
@@ -86,7 +84,7 @@ export function ModernPaymentForm({
         <span
           className={"radio-dot " + (method === "CARD" ? "is-selected" : "")}
         />
-      </button>
+      </Button>
       <form
         autoComplete="off"
         className="form-stack"
@@ -206,7 +204,6 @@ export function ModernPaymentForm({
         )}
         <Button size="lg" className="payment-submit" disabled={pending}>
           {pending ? "Обрабатываем оплату…" : "Оплатить " + money(amountMinor)}
-          <ArrowRight size={17} />
         </Button>
       </form>
       <p className="payment-note">

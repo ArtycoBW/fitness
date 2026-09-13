@@ -17,14 +17,26 @@ import {
 } from "./modules/memberships/membership.schema";
 
 // Additive development fixtures. Stable identifiers make reruns safe; customer records
-// outside the reserved stride.local addresses are never selected or modified.
+// outside the reserved stride.local addresses are selected only with an explicit target.
 const fixtureId = (key: string) => {
   const h = createHash("sha256")
     .update("stride-club-v2:" + key)
     .digest("hex");
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
 };
-export async function seedClub(db: Db, ownerId: string, passwordHash: string) {
+export async function seedClub(
+  db: Db,
+  ownerId: string,
+  passwordHash: string,
+  targetEmail?: string,
+) {
+  if (process.env.NODE_ENV === "production")
+    throw new Error("Activity fixtures are disabled in production");
+  const target = targetEmail
+    ? await db.clientProfile.findFirstOrThrow({
+        where: { user: { email: targetEmail } },
+      })
+    : null;
   const actor = {
     id: ownerId,
     name: "Артём Волков",
@@ -60,7 +72,7 @@ export async function seedClub(db: Db, ownerId: string, passwordHash: string) {
     },
   });
   // Existing morning/evening classes remain intact. Add lunch, afternoon and individual slots.
-  for (let offset = 0; offset < 28; offset++) {
+  for (let offset = 0; !target && offset < 28; offset++) {
     for (const [workoutSlug, trainerSlug, hallSlug, time] of [
       ["mobility", "elena-mironova", "studio", "10:30"],
       ["strength", "maksim-orlov", "personal", "12:00"],
@@ -114,7 +126,7 @@ export async function seedClub(db: Db, ownerId: string, passwordHash: string) {
     "Дарья Никитина",
     "Антон Данилов",
   ];
-  for (const [i, name] of names.entries()) {
+  for (const [i, name] of (target ? [] : names).entries()) {
     const email = `club${i + 1}@stride.local`;
     await db.user.upsert({
       where: { email },
@@ -136,20 +148,25 @@ export async function seedClub(db: Db, ownerId: string, passwordHash: string) {
       },
     });
   }
-  const clients = await db.clientProfile.findMany({
-    where: {
-      OR: [
-        { email: { in: names.map((_, i) => `club${i + 1}@stride.local`) } },
-        { user: { email: "client@stride.local" } },
-        {
-          email: {
-            in: Array.from({ length: 8 }, (_, i) => `member${i}@stride.local`),
-          },
+  const clients = target
+    ? [target]
+    : await db.clientProfile.findMany({
+        where: {
+          OR: [
+            { email: { in: names.map((_, i) => `club${i + 1}@stride.local`) } },
+            { user: { email: "client@stride.local" } },
+            {
+              email: {
+                in: Array.from(
+                  { length: 8 },
+                  (_, i) => `member${i}@stride.local`,
+                ),
+              },
+            },
+          ],
         },
-      ],
-    },
-    orderBy: { name: "asc" },
-  });
+        orderBy: { name: "asc" },
+      });
   const rhythm = await db.membershipPlan.findUniqueOrThrow({
     where: { slug: "rhythm" },
     include: { versions: { orderBy: { number: "desc" }, take: 1 } },
@@ -232,7 +249,7 @@ export async function seedClub(db: Db, ownerId: string, passwordHash: string) {
     });
     const selected = future
       .filter((s) => s.trainerId === trainer.id)
-      .slice(i % 3, (i % 3) + 3);
+      .slice(i % 3, (i % 3) + (target ? 6 : 3));
     for (const session of selected) {
       if (
         await db.booking.findUnique({
@@ -494,7 +511,7 @@ export async function seedClub(db: Db, ownerId: string, passwordHash: string) {
         },
       },
     });
-    for (const client of clients.filter((_, i) => i % 3 === index)) {
+    for (const client of clients.filter((_, i) => target || i % 3 === index)) {
       let assignment = await db.programAssignment.findFirst({
         where: { programId: program.id, clientId: client.id },
       });
@@ -560,39 +577,40 @@ export async function seedClub(db: Db, ownerId: string, passwordHash: string) {
         );
     }
   }
-  for (const [i, message] of [
-    "Хочу подобрать занятия для спины после рабочего дня.",
-    "Интересуют персональные тренировки два раза в неделю.",
-    "Можно прийти на йогу с нулевым опытом?",
-    "Ищу абонемент с возможностью заморозки на отпуск.",
-    "Хочу познакомиться с тренером по силовой подготовке.",
-    "Подскажите утренние занятия по пилатесу.",
-  ].entries()) {
-    const id = fixtureId("lead:" + i),
-      status = ["NEW", "CONTACTED", "CLOSED"][i % 3]!;
-    await db.lead.upsert({
-      where: { id },
-      update: {},
-      create: {
-        id,
-        name: names[i]!,
-        phone: "+7999400110" + i,
-        message,
-        status,
-        createdAt: midnight(date(-i)),
-        events: {
-          create: {
-            actorId: ownerId,
-            status,
-            note:
-              i % 3 === 2
-                ? "Подобрано удобное время для посещения клуба."
-                : "Обращение получено, уточняем удобное время для связи.",
+  if (!target)
+    for (const [i, message] of [
+      "Хочу подобрать занятия для спины после рабочего дня.",
+      "Интересуют персональные тренировки два раза в неделю.",
+      "Можно прийти на йогу с нулевым опытом?",
+      "Ищу абонемент с возможностью заморозки на отпуск.",
+      "Хочу познакомиться с тренером по силовой подготовке.",
+      "Подскажите утренние занятия по пилатесу.",
+    ].entries()) {
+      const id = fixtureId("lead:" + i),
+        status = ["NEW", "CONTACTED", "CLOSED"][i % 3]!;
+      await db.lead.upsert({
+        where: { id },
+        update: {},
+        create: {
+          id,
+          name: names[i]!,
+          phone: "+7999400110" + i,
+          message,
+          status,
+          createdAt: midnight(date(-i)),
+          events: {
+            create: {
+              actorId: ownerId,
+              status,
+              note:
+                i % 3 === 2
+                  ? "Подобрано удобное время для посещения клуба."
+                  : "Обращение получено, уточняем удобное время для связи.",
+            },
           },
         },
-      },
-    });
-  }
+      });
+    }
   console.log(
     `Club activity ready: ${clients.length} clients, 28 days of classes, memberships, payments and training plans.`,
   );
