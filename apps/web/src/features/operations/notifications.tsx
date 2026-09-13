@@ -2,8 +2,13 @@
 
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell } from "lucide-react";
+import {
+  keepPreviousData,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { Bell, CalendarCheck, CreditCard, Dumbbell, Check } from "lucide-react";
 import { api, post } from "@/lib/api";
 import { dateTime } from "@/lib/format";
 import { useUrlState } from "@/lib/url-state";
@@ -52,6 +57,7 @@ export function Notifications() {
       queryFn: () =>
         api<Notices>(`/notifications?page=${page}&unread=${unread}`),
       refetchInterval: 15000,
+      placeholderData: keepPreviousData,
     }),
     read = useMutation({
       mutationFn: (id?: string) =>
@@ -63,23 +69,16 @@ export function Notifications() {
       onError: (e) => toast.error(e.message),
     });
   return (
-    <>
+    <div className="notifications-page">
       <div className="page-heading heading-actions">
         <div>
           <span className="eyebrow">СОБЫТИЯ ВАШЕГО КЛУБА</span>
           <h1>Уведомления</h1>
           <p>Изменения расписания, оплаты и важные напоминания.</p>
         </div>
-        <Button
-          variant="outline"
-          disabled={read.isPending || !q.data?.unread}
-          onClick={() => read.mutate(undefined)}
-        >
-          Прочитать все
-        </Button>
       </div>
-      <div className="toolbar">
-        <label>
+      <div className="notifications-toolbar">
+        <label className="inline-check">
           <Input
             type="checkbox"
             checked={unread}
@@ -90,6 +89,13 @@ export function Notifications() {
           />{" "}
           Только непрочитанные
         </label>
+        <Button
+          variant="ghost"
+          disabled={read.isPending || !q.data?.unread}
+          onClick={() => read.mutate(undefined)}
+        >
+          <Check size={16} /> Прочитать все
+        </Button>
       </div>
       {q.error ? (
         <p className="form-error">{q.error.message}</p>
@@ -97,14 +103,32 @@ export function Notifications() {
         <p role="status">Загружаем уведомления…</p>
       ) : (
         <>
-          <section className="surface notice-list">
+          <section
+            className="notice-list"
+            aria-label="События клуба"
+            aria-busy={q.isFetching}
+          >
             {q.data.items.map((n) => (
               <article
                 className={"notice-row " + (!n.readAt ? "is-unread" : "")}
                 key={n.id}
               >
-                <div>
-                  <time>{dateTime(n.createdAt)}</time>
+                <span className="notice-icon" aria-hidden="true">
+                  {n.type === "PAYMENT" ? (
+                    <CreditCard size={19} />
+                  ) : n.type === "BOOKING" ? (
+                    <CalendarCheck size={19} />
+                  ) : n.type === "PROGRAM" ? (
+                    <Dumbbell size={19} />
+                  ) : (
+                    <Bell size={19} />
+                  )}
+                </span>
+                <div className="notice-copy">
+                  <div className="notice-meta">
+                    <time dateTime={n.createdAt}>{dateTime(n.createdAt)}</time>
+                    {!n.readAt && <span>Новое</span>}
+                  </div>
                   <h2>
                     <Link
                       href={n.href}
@@ -120,10 +144,12 @@ export function Notifications() {
                 {!n.readAt && (
                   <Button
                     variant="ghost"
+                    size="icon"
+                    aria-label={`Отметить прочитанным: ${n.title}`}
                     disabled={read.isPending}
                     onClick={() => read.mutate(n.id)}
                   >
-                    Прочитано
+                    <Check size={17} />
                   </Button>
                 )}
               </article>
@@ -155,7 +181,7 @@ export function Notifications() {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }
 const prefLabels = {

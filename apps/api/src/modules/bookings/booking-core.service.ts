@@ -1,4 +1,4 @@
-import { Injectable, Module } from "@nestjs/common";
+import { HttpException, Injectable, Module } from "@nestjs/common";
 import { Db } from "../../db";
 import { fail } from "../../common/business-error";
 import { atomic, audit, type Tx } from "../../common/transaction";
@@ -16,7 +16,7 @@ import { z } from "zod";
 import type { Principal } from "../auth/access";
 import type { Booking, ScheduledSession } from "../../generated/prisma/client";
 import { EntitlementService } from "../memberships/entitlement.service";
-import { policySchema } from "../schedule/schedule.schema";
+import { policySchema, waitlistDeadline } from "../schedule/schedule.schema";
 import {
   bookSchema,
   cancelBookingSchema,
@@ -295,8 +295,7 @@ export class BookingCore {
         });
         if (
           existing?.status === "WAITLISTED" &&
-          s.startAt.getTime() - Date.now() <=
-            policy.waitlistCutoffMinutes * 60000
+          s.startAt.getTime() - Date.now() <= waitlistDeadline(policy) * 60000
         )
           existing = await this.transition(
             tx,
@@ -341,7 +340,7 @@ export class BookingCore {
           }),
           cutoff =
             s.startAt.getTime() - Date.now() <=
-            policy.waitlistCutoffMinutes * 60000;
+            waitlistDeadline(policy) * 60000;
         const queue =
           !cutoff &&
           (await tx.booking.count({
@@ -411,8 +410,46 @@ export class BookingCore {
         existing = await tx.booking.findUnique({
           where: { clientId_sessionId: { clientId: target, sessionId } },
         });
+      let reason = await this.clientReason(tx, target, !staff(auth));
+      const profileRequired =
+        reason === "Для записи добавьте контактный телефон";
+      if (!reason) {
+        try {
+          this.open(s);
+        } catch (e) {
+          if (!(e instanceof HttpException)) throw e;
+          reason = (e.getResponse() as { message: string }).message;
+        }
+      }
+      if (
+        !reason &&
+        (await this.conflict(tx, target, s, existing ? [existing.id] : []))
+      )
+        reason = "В это время у вас уже есть занятие";
+      const policy = parse(policySchema, s.policySnapshot);
+      const canWaitlist =
+        s.startAt.getTime() - Date.now() > waitlistDeadline(policy) * 60000;
+      const occupied = await tx.booking.count({
+        where: { sessionId, status: { in: occupying } },
+      });
+      const queue =
+        canWaitlist &&
+        (await tx.booking.count({
+          where: { sessionId, status: "WAITLISTED" },
+        })) > 0;
+      const waitlistRequired = occupied >= s.capacity || queue;
+      if (!reason && waitlistRequired && !canWaitlist)
+        reason = "Свободных мест нет, очередь ожидания уже закрыта";
+      if (!reason && existing?.status === "CANCELLED_LATE" && waitlistRequired)
+        reason = "Для восстановления поздней отмены дождитесь свободного места";
+      if (!reason && existing?.status === "CANCELLED_BY_CLUB")
+        reason = "Эта запись завершена клубом. Выберите другое занятие";
       return {
-        reason: await this.clientReason(tx, target, !staff(auth)),
+        reason,
+        profileRequired,
+        waitlistRequired,
+        canWaitlist,
+        waitlistDeadlineMinutes: waitlistDeadline(policy),
         existing,
         memberships: ms.map((m) => ({
           id: m.id,
@@ -421,6 +458,10 @@ export class BookingCore {
           available: m.available,
           unlimited: this.rights.terms(m).visitLimit === null,
           reason:
+            (existing?.status === "CANCELLED_LATE" &&
+            existing.membershipId !== m.id
+              ? "Для восстановления нужен первоначальный абонемент"
+              : null) ??
             this.rights.eligibility(m, s) ??
             (this.rights.terms(m).visitLimit !== null &&
             m.available < 1 &&
@@ -456,14 +497,22 @@ export class BookingCore {
     parse(uuid, id);
     return atomic(this.db, async (tx) => {
       const { b, late } = await this.cancelCalculation(tx, auth, id);
+      const membership = await tx.membership.findUniqueOrThrow({
+        where: { id: b.membershipId },
+      });
+      const unlimited = this.rights.terms(membership).visitLimit === null;
       return {
         version: b.version,
         late,
-        message: late
-          ? "При отмене будет списано одно посещение"
-          : b.status === "WAITLISTED"
-            ? "Вы покинете очередь, посещение не списывается"
-            : "Посещение вернётся в доступный остаток",
+        message: unlimited
+          ? late
+            ? "Запись будет отменена. Поздняя отмена сохранится в истории; доплаты нет."
+            : "Запись будет отменена. Безлимитный абонемент продолжит действовать."
+          : late
+            ? "При отмене будет списано одно посещение"
+            : b.status === "WAITLISTED"
+              ? "Вы покинете очередь, посещение не списывается"
+              : "Посещение вернётся в доступный остаток",
       };
     });
   }
@@ -805,7 +854,7 @@ export class BookingCore {
       const policy = parse(policySchema, s.policySnapshot);
       if (
         s.status !== "PUBLISHED" ||
-        s.startAt.getTime() - Date.now() <= policy.waitlistCutoffMinutes * 60000
+        s.startAt.getTime() - Date.now() <= waitlistDeadline(policy) * 60000
       ) {
         await this.transition(
           tx,
@@ -855,7 +904,7 @@ export class BookingCore {
   async tick() {
     const rows = await this.db.$queryRaw<
       Array<{ id: string }>
-    >`SELECT b.id FROM "Booking" b JOIN "ScheduledSession" s ON s.id=b."sessionId" WHERE b.status='WAITLISTED' AND (s.status<>'PUBLISHED' OR s."startAt"<=NOW()+(COALESCE((s."policySnapshot"->>'waitlistCutoffMinutes')::int,60)*INTERVAL '1 minute') OR s.capacity>(SELECT COUNT(*) FROM "Booking" x WHERE x."sessionId"=s.id AND x.status IN ('CONFIRMED','ATTENDED','NO_SHOW'))) ORDER BY b."queuedAt",b.id LIMIT 100`;
+    >`SELECT b.id FROM "Booking" b JOIN "ScheduledSession" s ON s.id=b."sessionId" WHERE b.status='WAITLISTED' AND (s.status<>'PUBLISHED' OR s."startAt"<=NOW()+(GREATEST(COALESCE((s."policySnapshot"->>'waitlistCutoffMinutes')::int,60),COALESCE((s."policySnapshot"->>'cancelMinutes')::int,120),COALESCE((s."policySnapshot"->>'bookingCloseMinutes')::int,15))*INTERVAL '1 minute') OR s.capacity>(SELECT COUNT(*) FROM "Booking" x WHERE x."sessionId"=s.id AND x.status IN ('CONFIRMED','ATTENDED','NO_SHOW'))) ORDER BY b."queuedAt",b.id LIMIT 100`;
     for (const r of rows) await this.promote(r.id);
     const unmarked = await this.db.$queryRaw<
       Array<{ id: string }>

@@ -11,6 +11,14 @@ export const policySchema = z.object({
   trainerBufferMinutes: z.number().int().min(0).max(60).default(0),
 });
 export type Policy = z.infer<typeof policySchema>;
+// Automatic confirmation must leave the client a penalty-free cancellation
+// opportunity and must never happen after direct booking has closed.
+export const waitlistDeadline = (policy: Policy) =>
+  Math.max(
+    policy.waitlistCutoffMinutes,
+    policy.cancelMinutes,
+    policy.bookingCloseMinutes,
+  );
 export const sessionSchema = z
   .strictObject({
     workoutId: uuid,

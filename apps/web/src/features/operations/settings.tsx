@@ -18,7 +18,7 @@ const policy: Record<string, { label: string; min: number; max: number }> = {
   },
   cancelMinutes: { label: "Бесплатная отмена за, минут", min: 0, max: 1440 },
   waitlistCutoffMinutes: {
-    label: "Останавливать очередь за, минут",
+    label: "Останавливать очередь за, минут (не позже срока бесплатной отмены)",
     min: 15,
     max: 240,
   },

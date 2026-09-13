@@ -291,7 +291,23 @@
     width: 145px;
   }
   .session-facts {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 4px 0;
+  }
+  .session-facts svg {
+    flex-shrink: 0;
+  }
+  .session-dialog[data-slot="dialog-content"] {
+    padding: 18px;
+    gap: 12px;
+  }
+  .session-dialog .booking-picker {
+    padding-top: 12px;
+    margin-top: 0;
+  }
+  .session-dialog .membership-option {
+    padding: 10px 12px;
   }
   .schedule-toolbar button {
     padding-inline: 13px;

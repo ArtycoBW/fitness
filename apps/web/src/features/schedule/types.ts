@@ -15,6 +15,7 @@ export interface Session {
     cancelMinutes: number;
     bookingOpenDays: number;
     bookingCloseMinutes: number;
+    waitlistCutoffMinutes: number;
   };
   workout: {
     name: string;

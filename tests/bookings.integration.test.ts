@@ -90,7 +90,7 @@ async function call(
   });
   return { status: r.status, data: await r.json() };
 }
-async function member(clientId: string, count = 8) {
+async function member(clientId: string, count: number | null = 8) {
   return atomic(db, async (tx: typeof db) => {
     const o = await tx.order.create({
       data: {
@@ -279,6 +279,101 @@ afterAll(async () => {
   await db.$disconnect();
 });
 describe.sequential("Bookings and concurrency with PostgreSQL", () => {
+  it("previews the same booking window and client conflicts as confirmation", async () => {
+    const future = await session(25, 8);
+    const options = (id: string) =>
+      call(
+        `/sessions/${id}/booking-options`,
+        "GET",
+        undefined,
+        clients[22]!.cookie,
+      );
+    expect((await options(future.id)).data.reason).toBe(
+      "Запись на это занятие ещё не открылась",
+    );
+    expect((await book(22, future.id)).data.error.code).toBe(
+      "BOOKING_NOT_OPEN",
+    );
+    const first = await session(2, 14, 1, 0),
+      other = await session(2, 14, 1, 1);
+    expect((await book(22, first.id)).status).toBe(201);
+    const conflict = (await options(other.id)).data;
+    expect(conflict.reason).toContain("уже есть занятие");
+    expect(conflict.profileRequired).toBe(false);
+    expect((await book(22, other.id)).data.error.code).toBe("CLIENT_CONFLICT");
+  });
+  it("expires automatic waiting before the late-cancellation window while allowing explicit booking of a released seat", async () => {
+    const s = await session(2, 17, 1, 1),
+      b = await book(23, s.id),
+      w = await book(22, s.id, true);
+    expect(w.data.status).toBe("WAITLISTED");
+    await db.scheduledSession.update({
+      where: { id: s.id },
+      data: {
+        startAt: new Date(Date.now() + 90 * 60000),
+        endAt: new Date(Date.now() + 150 * 60000),
+      },
+    });
+    await core.tick();
+    expect(
+      (await db.booking.findUnique({ where: { id: w.data.id } })).status,
+    ).toBe("WAITLIST_EXPIRED");
+    const options = (
+      await call(
+        `/sessions/${s.id}/booking-options`,
+        "GET",
+        undefined,
+        clients[22]!.cookie,
+      )
+    ).data;
+    expect(options.canWaitlist).toBe(false);
+    expect(options.waitlistDeadlineMinutes).toBe(120);
+    expect(options.reason).toContain("очередь ожидания уже закрыта");
+    await call(
+      `/bookings/${b.data.id}/cancel`,
+      "POST",
+      { version: b.data.version, acceptLoss: true },
+      clients[23]!.cookie,
+    );
+    expect((await book(22, s.id)).data.status).toBe("CONFIRMED");
+  });
+  it("explains unlimited late cancellation without promising a finite-credit refund", async () => {
+    const unlimited = await member(clients[21]!.id, null),
+      s = await session(2, 19, 1, 0);
+    const b = await book(21, s.id, false, unlimited.id);
+    expect(b.status).toBe(201);
+    await db.scheduledSession.update({
+      where: { id: s.id },
+      data: {
+        startAt: new Date(Date.now() + 90 * 60000),
+        endAt: new Date(Date.now() + 150 * 60000),
+      },
+    });
+    const preview = (
+      await call(
+        `/bookings/${b.data.id}/cancel-preview`,
+        "POST",
+        {},
+        clients[21]!.cookie,
+      )
+    ).data;
+    expect(preview.late).toBe(true);
+    expect(preview.message).toContain("доплаты нет");
+    expect(
+      (
+        await call(
+          `/bookings/${b.data.id}/cancel`,
+          "POST",
+          { version: b.data.version, acceptLoss: true },
+          clients[21]!.cookie,
+        )
+      ).status,
+    ).toBe(201);
+    expect(
+      (await db.membership.findUnique({ where: { id: unlimited.id } }))
+        .available,
+    ).toBe(0);
+  });
   it("admits exactly one of twenty contenders for the last place", async () => {
     const s = await session(3);
     const rs = await Promise.all(

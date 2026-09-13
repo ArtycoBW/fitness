@@ -7,6 +7,7 @@ import { atomic } from "./common/transaction";
 import type { Principal } from "./modules/auth/access";
 import { seedPrograms } from "./seed-programs";
 import { seedClub } from "./seed-club";
+import { seedAdditionalTrainers } from "./seed-trainers";
 async function seed() {
   if (env.NODE_ENV === "production")
     throw new Error("Seed is disabled in production");
@@ -303,6 +304,7 @@ async function seed() {
     }
     if (client.client) await seedPrograms(db, owner.id, client.client.id);
     await seedClub(db, owner.id, passwordHash);
+    await seedAdditionalTrainers(db, owner.id, passwordHash);
     await db.auditLog.create({
       data: {
         actorId: owner.id,

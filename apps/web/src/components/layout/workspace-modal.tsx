@@ -86,6 +86,7 @@ export function WorkspaceModal({
       <DialogContent
         className="workspace-modal"
         data-view={overlay?.kind}
+        data-stage={payment ? "confirmation" : order ? "checkout" : "catalog"}
         onClickCapture={(event) => {
           const link = (event.target as HTMLElement).closest("a");
           if (
@@ -116,9 +117,15 @@ export function WorkspaceModal({
         }}
       >
         <DialogHeader
-          className={overlay?.kind === "schedule" ? "sr-only" : undefined}
+          className={overlay?.kind !== "memberships" ? "sr-only" : undefined}
         >
-          <DialogTitle>{title}</DialogTitle>
+          {overlay?.kind === "memberships" ? (
+            <DialogTitle>{title}</DialogTitle>
+          ) : (
+            <DialogTitle asChild>
+              <span>{title}</span>
+            </DialogTitle>
+          )}
           <DialogDescription className="sr-only">
             Расписание, абонементы и услуги клуба
           </DialogDescription>

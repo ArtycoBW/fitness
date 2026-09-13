@@ -33,12 +33,14 @@ export function Almanac({ items }: { items: PublicItem[] }) {
         const buried = Math.max(0, progress - i);
         card.style.transform = reduce.matches
           ? "none"
-          : `perspective(1500px) translateY(${incoming * 115}%) translateY(${Math.min(buried, 3) * -22}px) rotateX(${incoming * 15 - buried * 3}deg) scale(${1 - Math.min(buried, 3) * 0.035})`;
+          : `perspective(1500px) translateY(${incoming * 115}%) translateY(${Math.min(buried, 2) * -12}px) rotateX(${incoming * 15 - Math.min(buried, 2) * 2}deg) scale(${1 - Math.min(buried, 2) * 0.035})`;
         card.style.filter = reduce.matches
           ? "none"
           : `brightness(${1 - Math.min(buried, 3) * 0.035})`;
         card.style.visibility =
-          i > Math.ceil(progress) || (reduce.matches && i !== index)
+          i > Math.ceil(progress) ||
+          buried > 3 ||
+          (reduce.matches && i !== index)
             ? "hidden"
             : "visible";
         card.classList.toggle("is-in", incoming < 0.55);

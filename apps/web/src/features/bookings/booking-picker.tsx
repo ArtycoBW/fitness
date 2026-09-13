@@ -3,7 +3,8 @@
 import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, post, ApiError, type User } from "@/lib/api";
@@ -15,6 +16,10 @@ import type { Session } from "@/features/schedule/types";
 import { bookingStatuses, type Booking } from "./types";
 interface Options {
   reason: string | null;
+  profileRequired?: boolean;
+  waitlistRequired?: boolean;
+  canWaitlist?: boolean;
+  waitlistDeadlineMinutes?: number;
   existing: Booking | null;
   memberships: {
     id: string;
@@ -26,6 +31,8 @@ interface Options {
   }[];
 }
 export function BookingPicker({ session: s }: { session: Session }) {
+  const fieldId = useId();
+  const [expanded, setExpanded] = useState(false);
   const path = usePathname();
   const qc = useQueryClient(),
     { data: user } = useQuery({
@@ -118,7 +125,8 @@ export function BookingPicker({ session: s }: { session: Session }) {
   const queueError =
     save.error instanceof ApiError &&
     ["SESSION_FULL", "WAITLIST_PRIORITY"].includes(save.error.code);
-  const waiting = s.freePlaces === 0 || queueError;
+  const waiting =
+    options?.waitlistRequired ?? (s.freePlaces === 0 || queueError);
   return (
     <section className="booking-picker">
       {staff && (
@@ -153,7 +161,7 @@ export function BookingPicker({ session: s }: { session: Session }) {
       {options?.reason && (
         <p className="form-error">
           {options.reason}
-          {!staff && (
+          {!staff && options.profileRequired && (
             <>
               {" "}
               <Link href="/account/profile">Открыть профиль</Link>
@@ -181,39 +189,57 @@ export function BookingPicker({ session: s }: { session: Session }) {
         </div>
       ) : options && !options.reason ? (
         <>
-          <h3>Выберите абонемент</h3>
-          <div className="membership-options">
-            {options.memberships.map((m) => (
-              <label
-                className={
-                  "membership-option " +
-                  (member?.id === m.id ? "is-selected" : "") +
-                  (m.reason ? " is-disabled" : "")
-                }
-                key={m.id}
-              >
-                <Input
-                  type="radio"
-                  name="booking-membership"
-                  disabled={!!m.reason}
-                  checked={member?.id === m.id}
-                  onChange={() => {
-                    setSelected(m.id);
-                    save.reset();
-                  }}
-                />
-                <span>
-                  <strong>{m.title}</strong>
-                  <small>
-                    {m.reason ??
-                      (m.unlimited ? "Безлимит" : visits(m.available)) +
-                        " · до " +
-                        dateOnly(m.endAt)}
-                  </small>
-                </span>
-              </label>
-            ))}
-          </div>
+          <h3 id={fieldId}>Выберите абонемент</h3>
+          <RadioGroup
+            className="membership-options"
+            aria-labelledby={fieldId}
+            value={member?.id ?? ""}
+            onValueChange={(id) => {
+              setSelected(id);
+              save.reset();
+            }}
+          >
+            {[...options.memberships]
+              .sort((a, b) => Number(!!a.reason) - Number(!!b.reason))
+              .filter((m, i) => expanded || i < 3 || m.id === member?.id)
+              .map((m) => (
+                <label
+                  className={
+                    "membership-option " +
+                    (member?.id === m.id ? "is-selected" : "") +
+                    (m.reason ? " is-disabled" : "")
+                  }
+                  key={m.id}
+                >
+                  <RadioGroupItem
+                    value={m.id}
+                    aria-label={m.title}
+                    disabled={!!m.reason}
+                  />
+                  <span>
+                    <strong>{m.title}</strong>
+                    <small>
+                      {m.reason ??
+                        (m.unlimited ? "Безлимит" : visits(m.available)) +
+                          " · до " +
+                          dateOnly(m.endAt)}
+                    </small>
+                  </span>
+                </label>
+              ))}
+          </RadioGroup>
+          {options.memberships.length > 3 && (
+            <Button
+              className="membership-expand"
+              variant="ghost"
+              onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
+            >
+              {expanded
+                ? "Свернуть список"
+                : `Все абонементы (${options.memberships.length})`}
+            </Button>
+          )}
           {!options.memberships.some((m) => !m.reason) && (
             <div className="notice">
               <p>Для этого занятия нужен подходящий абонемент.</p>
@@ -226,10 +252,12 @@ export function BookingPicker({ session: s }: { session: Session }) {
             <>
               <p className="field-hint">
                 {waiting
-                  ? "Очередь не расходует посещение. Автоподтверждение завершится за час до начала."
-                  : "Одно посещение будет зарезервировано до занятия. Бесплатная отмена — за " +
-                    s.policySnapshot.cancelMinutes / 60 +
-                    " ч до начала."}
+                  ? `Очередь не расходует посещение. Если место освободится, запись подтвердится автоматически. Автоподтверждение прекращается за ${options.waitlistDeadlineMinutes ?? Math.max(s.policySnapshot.waitlistCutoffMinutes, s.policySnapshot.cancelMinutes, s.policySnapshot.bookingCloseMinutes)} мин до начала.`
+                  : member.unlimited
+                    ? "Занятие входит в ваш безлимитный абонемент. Если планы изменятся, отмените запись, чтобы освободить место."
+                    : existing?.status === "CANCELLED_LATE"
+                      ? "Восстановим запись с ранее удержанным посещением. Повторного списания не будет."
+                      : `Одно посещение будет зарезервировано до занятия. Отмена с возвратом посещения — не позднее чем за ${s.policySnapshot.cancelMinutes} мин до начала.`}
               </p>
               {save.error && <p className="form-error">{save.error.message}</p>}
               <Button

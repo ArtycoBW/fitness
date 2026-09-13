@@ -62,6 +62,16 @@ test("client books from schedule and cancels with visit release", async ({
     await page.goto("/schedule?date=" + tomorrow + "&view=day");
     await page.locator(".calendar-event").first().click();
   }
+  const expand = dialog.getByRole("button", { name: /^Все абонементы/ });
+  if (await expand.count()) await expand.click();
+  const chosen = dialog.locator(".membership-option:not(.is-disabled)").filter({ hasText: "Свой ритм" }).first();
+  await chosen.click();
+  const radio = chosen.getByRole("radio");
+  await expect(radio).toBeChecked();
+  const size = await radio.boundingBox();
+  expect(size!.width).toBe(20);
+  expect(size!.height).toBe(20);
+  expect(await dialog.locator(".membership-options").evaluate(el => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
   await dialog
     .getByRole("button", { name: "Подтвердить запись", exact: true })
     .click();

@@ -86,6 +86,7 @@ test("Almanac reveals the next trainer inside a pinned viewport", async ({
   page,
 }) => {
   await page.goto("/");
+  expect(await page.locator(".almanac-card").count()).toBeGreaterThanOrEqual(7);
   await page
     .locator("#team")
     .evaluate((node) => node.scrollIntoView({ behavior: "instant" }));
@@ -109,9 +110,31 @@ test("Almanac reveals the next trainer inside a pinned viewport", async ({
   const stage = await page.locator(".almanac-viewport").boundingBox();
   expect(Math.abs(stage!.y)).toBeLessThan(2);
   expect(Math.abs(stage!.height - 1000)).toBeLessThan(2);
+  const cards = page.locator(".almanac-card");
+  for (let i = 2; i < (await cards.count()); i++) {
+    await page.getByRole("button", { name: "Следующий тренер" }).click();
+    await expect
+      .poll(() => cards.nth(i).evaluate((n) => (n as HTMLElement).inert))
+      .toBe(false);
+  }
+  await expect(
+    page.getByRole("button", { name: "Следующий тренер" }),
+  ).toBeDisabled();
+  await expect
+    .poll(() =>
+      page.locator(".almanac-viewport").evaluate((node) => {
+        const heading = node
+          .querySelector(".section-heading")!
+          .getBoundingClientRect();
+        return [...node.querySelectorAll(".almanac-card")]
+          .filter((card) => getComputedStyle(card).visibility === "visible")
+          .every((card) => card.getBoundingClientRect().top >= heading.bottom);
+      }),
+    )
+    .toBe(true);
   await page
     .locator(".almanac-card")
-    .nth(1)
+    .last()
     .getByRole("link", { name: "Занятия с тренером" })
     .click();
   await expect(

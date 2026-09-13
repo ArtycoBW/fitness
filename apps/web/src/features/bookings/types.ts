@@ -29,7 +29,10 @@ export interface Booking {
     hall: { name: string };
     policySnapshot: { cancelMinutes: number };
   };
-  membership: { id: string; termsSnapshot: { title: string } };
+  membership: {
+    id: string;
+    termsSnapshot: { title: string; visitLimit: number | null };
+  };
   events?: {
     id: string;
     toStatus: string;

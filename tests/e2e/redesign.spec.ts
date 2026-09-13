@@ -80,7 +80,7 @@ test("account overlays preserve workspace, filters and card layout", async ({
     .getByRole("link", { name: "Уведомления", exact: true })
     .click();
   await expect(
-    modal.getByRole("heading", { name: "Уведомления", exact: true }).first(),
+    modal.getByRole("heading", { name: "Уведомления", exact: true }),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/account$/);
   await page.keyboard.press("Escape");

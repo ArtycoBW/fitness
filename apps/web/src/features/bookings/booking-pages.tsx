@@ -403,7 +403,9 @@ export function BookingDetail({
             {action === "cancel" && preview?.late && (
               <label className="inline-check">
                 <Input name="acceptLoss" type="checkbox" required />
-                Подтверждаю списание одного посещения
+                {b.membership.termsSnapshot.visitLimit === null
+                  ? "Подтверждаю позднюю отмену"
+                  : "Подтверждаю списание одного посещения"}
               </label>
             )}
             {admin && ["ATTENDED", "NO_SHOW"].includes(action) && (

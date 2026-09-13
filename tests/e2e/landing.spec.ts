@@ -22,11 +22,10 @@ test("public landing catalogs, motion controls and contact submission", async ({
     .getByRole("group", { name: "Направления тренировок" })
     .getByRole("button");
   await tabs.first().focus();
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Enter");
-  await expect(tabs.nth(1)).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("ArrowRight");
+  await expect(tabs.nth(1)).toHaveAttribute("aria-expanded", "true");
   await page
-    .locator('.gallery-description[data-active="true"]')
+    .locator('.colonnade-column[data-active="true"] .colonnade-description')
     .getByRole("link", { name: "О направлении" })
     .click();
   await expect(page).toHaveURL(/\/workouts\//);
