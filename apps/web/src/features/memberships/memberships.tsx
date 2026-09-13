@@ -58,6 +58,7 @@ const statuses: Record<string, string> = {
   SCHEDULED: "Ожидает начала",
   EXPIRED: "Истёк",
   FROZEN: "Заморожен",
+  REFUND_PENDING: "Оформляется возврат",
   EXHAUSTED: "Нет свободных посещений",
   CANCELLED: "Отменён",
 };

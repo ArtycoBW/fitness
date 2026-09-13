@@ -27,6 +27,7 @@ export const adminNavigation = [
   { path: "workouts", label: "Направления", icon: Activity },
   { path: "membership-plans", label: "Тарифы", icon: CreditCard },
   { path: "memberships", label: "Абонементы", icon: CreditCard },
+  { path: "payments", label: "Оплаты", icon: CreditCard },
 ];
 export function AppShell({
   children,
@@ -113,11 +114,18 @@ export function AppShell({
                 />
               ))}
             {area === "account" && (
-              <SidebarLink
-                href="/account/memberships"
-                label="Абонементы"
-                icon={<CreditCard size={20} />}
-              />
+              <>
+                <SidebarLink
+                  href="/account/memberships"
+                  label="Абонементы"
+                  icon={<CreditCard size={20} />}
+                />
+                <SidebarLink
+                  href="/account/payments"
+                  label="Оплаты"
+                  icon={<CreditCard size={20} />}
+                />
+              </>
             )}
             {area === "trainer" && (
               <>

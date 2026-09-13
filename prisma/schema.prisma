@@ -380,6 +380,7 @@ model Order {
   client          ClientProfile         @relation(fields: [clientId], references: [id], onDelete: Restrict)
   planVersion     MembershipPlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Restrict)
   membership      Membership?
+  payments        PaymentAttempt[]
 
   @@index([clientId, createdAt])
 }
@@ -392,6 +393,7 @@ model Membership {
   startAt       DateTime
   endAt         DateTime
   cancelledAt   DateTime?
+  refundHold    Boolean               @default(false)
   termsSnapshot Json
   available     Int                   @default(0)
   reserved      Int                   @default(0)
@@ -448,4 +450,64 @@ model IdempotencyRecord {
   createdAt   DateTime @default(now())
 
   @@unique([actorId, route, key])
+}
+
+model PaymentAttempt {
+  id String @id @default(uuid()) @db.Uuid
+  orderId String @db.Uuid
+  method String
+  provider String @default("simulator")
+  providerPaymentId String @unique @default(uuid())
+  status String @default("PROCESSING")
+  amountMinor Int
+  maskedLast4 String?
+  confirmedAt DateTime?
+  createdAt DateTime @default(now())
+  nextCheckAt DateTime @default(now())
+  checkCount Int @default(0)
+  internalOutcome String @default("SUCCESS")
+  failureCode String?
+  order Order @relation(fields:[orderId],references:[id],onDelete:Restrict)
+  events PaymentEvent[]
+  refunds Refund[]
+  confirmation PaymentConfirmation?
+  @@index([status,nextCheckAt])
+  @@index([orderId,createdAt])
+}
+model PaymentEvent {
+  id String @id @default(uuid()) @db.Uuid
+  provider String
+  providerEventId String
+  paymentId String @db.Uuid
+  eventType String
+  receivedAt DateTime @default(now())
+  processedAt DateTime @default(now())
+  payment PaymentAttempt @relation(fields:[paymentId],references:[id],onDelete:Restrict)
+  @@unique([provider,providerEventId])
+}
+model Refund {
+  id String @id @default(uuid()) @db.Uuid
+  paymentId String @db.Uuid
+  amountMinor Int
+  status String @default("PROCESSING")
+  reason String
+  entitlementAction String
+  requestedBy String @db.Uuid
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  nextCheckAt DateTime @default(now())
+  checkCount Int @default(0)
+  internalOutcome String @default("SUCCESS")
+  providerRefundId String @unique @default(uuid())
+  payment PaymentAttempt @relation(fields:[paymentId],references:[id],onDelete:Restrict)
+  @@index([status,nextCheckAt])
+  @@index([paymentId,status])
+}
+model PaymentConfirmation {
+  id String @id @default(uuid()) @db.Uuid
+  paymentId String @unique @db.Uuid
+  reference String @unique
+  issuedAt DateTime @default(now())
+  immutableSnapshot Json
+  payment PaymentAttempt @relation(fields:[paymentId],references:[id],onDelete:Restrict)
 }

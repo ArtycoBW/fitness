@@ -1,0 +1,480 @@
+.checkout-page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 42px 32px 90px;
+}
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 100px;
+  align-items: start;
+  margin-top: 40px;
+}
+.order-summary h1,
+.public-plans-heading h1 {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: clamp(56px, 6vw, 88px);
+  font-weight: 400;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  margin: 24px 0 38px;
+}
+.order-summary h1 em,
+.public-plans-heading h1 em {
+  font-weight: 400;
+  color: #678361;
+}
+.order-product {
+  border-top: 1px solid var(--border);
+  padding: 26px 0;
+}
+.order-product h2 {
+  font-size: 27px;
+  margin: 10px 0;
+}
+.order-product p {
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+.order-product ul,
+.public-plan ul {
+  display: grid;
+  gap: 14px;
+  margin: 26px 0;
+  font-size: 14px;
+}
+.order-product li,
+.public-plan li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.order-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 25px;
+  border-top: 1px solid var(--border);
+}
+.order-total strong {
+  font-size: 30px;
+  font-weight: 500;
+}
+.payment-form {
+  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: 0 20px 70px #1d4e1c08;
+}
+.payment-form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 26px;
+}
+.pay-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.pay-options button {
+  height: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 5px;
+  font-size: 12px;
+  border-radius: 12px;
+}
+.pay-options button.is-selected {
+  background: #edf5e9;
+  border-color: #527d55;
+}
+.pay-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  font-size: 23px;
+  font-weight: 700;
+  border-radius: 7px;
+  color: #fff;
+  background: #183e20;
+  flex-shrink: 0;
+}
+.pay-mark.alfa_pay {
+  background: #eb3435;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pay-mark.yandex_pay {
+  background: #161616;
+}
+.pay-mark.sber_pay {
+  background: #28a64c;
+  border-radius: 50%;
+}
+.card-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-block: 1px solid var(--border);
+  padding: 22px 0;
+  margin: 22px 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+.radio-dot {
+  margin-left: auto;
+  border: 1px solid #a3b29d;
+  border-radius: 50%;
+  height: 17px;
+  width: 17px;
+}
+.radio-dot.is-selected {
+  border: 5px solid var(--primary);
+}
+.payment-card-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.payment-submit {
+  width: 100%;
+  margin-top: 12px;
+  justify-content: space-between;
+  height: 50px !important;
+  border-radius: 12px !important;
+}
+.payment-note {
+  margin: 18px 0 0;
+  font-size: 12px;
+  text-align: center;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+.pay-selected {
+  text-align: center;
+  padding: 20px 5px;
+  line-height: 1.7;
+}
+.pay-selected > .pay-mark {
+  height: 44px;
+  width: 44px;
+  font-size: 30px;
+}
+.pay-selected h3 {
+  font-size: 22px;
+  margin: 14px 0;
+}
+.payment-pending {
+  text-align: center;
+  padding: 64px 25px;
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+}
+.payment-pending h2 {
+  font-size: 26px;
+}
+.spin {
+  animation: payment-spin 1.5s linear infinite;
+}
+@keyframes payment-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.confirmation-page {
+  padding: 60px 24px 100px;
+  background: #f0f3e9;
+  min-height: calc(100vh - 90px);
+}
+.ticket-wrap {
+  max-width: 440px;
+  margin: auto;
+}
+.confirmation-ticket {
+  background: var(--card);
+  border-radius: 22px;
+  position: relative;
+  box-shadow: 0 20px 60px #17360f09;
+  animation: ticket-enter 0.6s ease-out;
+}
+.confirmation-ticket:before,
+.confirmation-ticket:after {
+  content: "";
+  position: absolute;
+  top: 270px;
+  width: 24px;
+  height: 24px;
+  background: #f0f3e9;
+  border-radius: 50%;
+}
+.confirmation-ticket:before {
+  left: -12px;
+}
+.confirmation-ticket:after {
+  right: -12px;
+}
+.confirmation-ticket header {
+  padding: 35px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ticket-check {
+  display: grid;
+  place-items: center;
+  background: #e6f1df;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 25px;
+}
+.confirmation-ticket h1 {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 46px;
+  font-weight: 400;
+  margin: 14px 0 5px;
+  letter-spacing: -0.03em;
+}
+.confirmation-ticket header p {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+.ticket-body {
+  padding: 0 30px;
+}
+.ticket-amount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 0;
+  border-top: 2px dashed #dce4d3;
+}
+.ticket-amount h2 {
+  font-size: 23px;
+  margin-top: 7px;
+}
+.ticket-amount > strong {
+  font-size: 25px;
+  white-space: nowrap;
+}
+.ticket-method {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px;
+  background: #f2f5ec;
+  border-radius: 10px;
+  margin: 22px 0;
+}
+.ticket-method p {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+.ticket-barcode {
+  padding: 12px 0 23px;
+  border-top: 2px dashed #dce4d3;
+  text-align: center;
+}
+.ticket-barcode svg {
+  width: 100%;
+  height: auto;
+  max-height: 90px;
+}
+.ticket-barcode p {
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.confirmation-ticket footer {
+  border-top: 1px solid var(--border);
+  padding: 18px 15px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.ticket-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+.public-plans {
+  max-width: 1260px;
+  margin: auto;
+  padding: 65px 32px 90px;
+}
+.public-plans-heading {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 80px;
+  align-items: end;
+}
+.public-plans-heading > .eyebrow {
+  grid-column: 1/-1;
+}
+.public-plans-heading p {
+  font-size: 17px;
+  line-height: 1.8;
+  max-width: 400px;
+  padding-bottom: 42px;
+  color: var(--muted-foreground);
+}
+.public-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 35px;
+}
+.public-plan {
+  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  background: #f5f6ed;
+}
+.public-plan.featured {
+  background: #153e21;
+  color: #fffefc;
+}
+.public-plan h2 {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 44px;
+  font-weight: 400;
+  margin: 20px 0 12px;
+}
+.public-plan p {
+  font-size: 14px;
+  line-height: 1.7;
+  opacity: 0.8;
+  min-height: 50px;
+}
+.public-plan-price {
+  font-size: 36px;
+  margin: 24px 0 0;
+}
+.public-plan-price span {
+  display: block;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 5px;
+}
+.public-plan ul {
+  flex: 1;
+  border-top: 1px solid #8a9d7c44;
+  padding-top: 24px;
+}
+.public-plan > button {
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 18px;
+  height: 48px;
+}
+.plans-footnote {
+  margin-top: 30px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+@keyframes ticket-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 850px) {
+  .checkout-grid {
+    gap: 35px;
+  }
+  .public-plan-grid {
+    grid-template-columns: 1fr;
+  }
+  .public-plan p {
+    min-height: 0;
+  }
+  .public-plans-heading {
+    display: block;
+  }
+  .public-plans-heading p {
+    padding: 0;
+  }
+  .public-plan h2 {
+    font-size: 42px;
+  }
+}
+@media (max-width: 650px) {
+  .checkout-page {
+    padding: 28px 20px 60px;
+  }
+  .checkout-grid {
+    grid-template-columns: 1fr;
+    margin-top: 28px;
+  }
+  .order-summary h1 {
+    font-size: 62px;
+    margin: 16px 0 25px;
+  }
+  .payment-form {
+    padding: 22px;
+  }
+  .public-plans {
+    padding: 40px 22px 60px;
+  }
+  .public-plans-heading h1 {
+    font-size: 62px;
+  }
+  .confirmation-page {
+    padding: 32px 18px 60px;
+  }
+  .ticket-body {
+    padding: 0 23px;
+  }
+  .confirmation-ticket h1 {
+    font-size: 42px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confirmation-ticket,
+  .spin {
+    animation: none;
+  }
+}
+@media print {
+  body {
+    background: white !important;
+  }
+  .public-header,
+  .ticket-actions,
+  .back-link {
+    display: none !important;
+  }
+  .confirmation-page {
+    padding: 0;
+    background: white;
+    min-height: 0;
+  }
+  .confirmation-ticket {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    animation: none;
+  }
+  .confirmation-ticket:before,
+  .confirmation-ticket:after {
+    display: none;
+  }
+  .ticket-wrap {
+    max-width: 440px;
+    margin: 0 auto;
+  }
+}

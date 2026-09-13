@@ -2,15 +2,18 @@ import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { OutboxService } from "./modules/notifications/outbox.service";
+import { PaymentService } from "./modules/payments/payment.service";
 async function run() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const outbox = app.get(OutboxService);
+  const payments = app.get(PaymentService);
   let running = false;
   const tick = async () => {
     if (running) return;
     running = true;
     try {
       await outbox.tick();
+      await payments.tick();
     } catch {
       process.stderr.write("Worker tick failed\n");
     } finally {

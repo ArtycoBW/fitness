@@ -244,6 +244,8 @@ export class MembershipService {
       async (tx) => {
         const m = await this.rights.lock(tx, id);
         this.scope(auth, m.clientId);
+        if (m.refundHold)
+          fail("REFUND_PENDING", "По абонементу оформляется возврат");
         const terms = this.rights.terms(m);
         const startAt = midnight(dto.startDate),
           endAt = midnight(dto.endDate),
@@ -315,6 +317,8 @@ export class MembershipService {
       async (tx) => {
         const m = await this.rights.lock(tx, id);
         this.scope(auth, m.clientId);
+        if (m.refundHold)
+          fail("REFUND_PENDING", "По абонементу оформляется возврат");
         const f = m.freezes.find((f) => f.id === freezeId);
         if (!f || f.status !== "ACTIVE")
           fail("NOT_FOUND", "Заморозка не найдена", 404);

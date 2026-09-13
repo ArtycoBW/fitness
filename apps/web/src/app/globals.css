@@ -3,6 +3,7 @@
 @import "./workspace.css";
 @import "./memberships.css";
 @import "./schedule.css";
+@import "./payments.css";
 @custom-variant dark (&:is(.dark *));
 :root {
   --background: #fffefc;
@@ -63,7 +64,7 @@ body {
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
-a {
+a:not([data-slot="button"]) {
   color: inherit;
   text-decoration: none;
 }

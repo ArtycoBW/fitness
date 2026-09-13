@@ -32,6 +32,7 @@ export class EntitlementService {
   }
   status(m: Entitlement, now = new Date()) {
     if (m.cancelledAt) return "CANCELLED";
+    if (m.refundHold) return "REFUND_PENDING";
     if (m.startAt > now) return "SCHEDULED";
     if (m.endAt <= now) return "EXPIRED";
     if (
@@ -56,6 +57,7 @@ export class EntitlementService {
   ) {
     const terms = this.terms(m);
     if (m.cancelledAt) return "Абонемент отменён";
+    if (m.refundHold) return "По абонементу оформляется возврат";
     if (session.startAt < m.startAt || session.endAt > m.endAt)
       return "Занятие вне срока действия";
     if (

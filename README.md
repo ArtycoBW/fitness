@@ -10,7 +10,7 @@
 2. Выполните pnpm install, затем pnpm infra:up.
 3. Выполните pnpm db:generate и pnpm db:migrate.
 4. Запустите pnpm dev.
-5. В отдельном терминале запустите `pnpm --filter @fitness/api worker` для отправки писем.
+5. В отдельном терминале запустите `pnpm --filter @fitness/api worker` для писем, обработки платежей и возвратов. Неопределённые операции сохраняются в БД и сверяются после перезапуска worker.
 
 Для первого руководителя задайте `OWNER_EMAIL`, `OWNER_PASSWORD` (12+ символов), при необходимости `OWNER_NAME`, затем выполните `pnpm --filter @fitness/api owner:create`. Команда не заменяет существующего руководителя.
 
@@ -23,6 +23,8 @@ Web: http://localhost:3000. API: http://localhost:4000/api/v1. OpenAPI: http://l
 `pnpm lint`, `pnpm typecheck`, `pnpm build`, затем `pnpm test`. Интеграционные тесты запускают собранный API на порту 4100 и используют отдельную PostgreSQL-базу с суффиксом `_test`. Пользователь БД должен иметь право создать эту базу; можно заранее подготовить её и задать `TEST_DATABASE_URL`. Миграции применяются командой `pnpm db:migrate`.
 
 Изображения сохраняются в `UPLOADS_DIR`. Входящие JPG/PNG/WebP ограничены 5 МБ и 20 млн пикселей, перекодируются в WebP без исходных метаданных.
+
+Браузерные проверки: после запуска web, API и worker задайте `E2E_CLIENT_EMAIL`, `E2E_OWNER_EMAIL`, `E2E_PASSWORD` от вымышленных seed-аккаунтов и выполните `pnpm test:e2e`. Проверки создают покупки и возвраты, поэтому используйте отдельное локальное окружение. `CHROME_PATH` позволяет выбрать установленный Chrome; без него нужен `pnpm exec playwright install chromium`. `E2E_BASE_URL` меняет адрес сайта. Считывание штрихкода проверяется независимым декодером ZXing.
 
 ## Контейнеры
 

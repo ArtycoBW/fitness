@@ -2,6 +2,7 @@ import { CatalogModule } from "./modules/catalog/catalog.controller";
 import { MediaModule } from "./modules/catalog/media.controller";
 import { MembershipModule } from "./modules/memberships/membership.controller";
 import { ScheduleModule } from "./modules/schedule/schedule.controller";
+import { PaymentModule } from "./modules/payments/payment.controller";
 import { Controller, Get, Module } from "@nestjs/common";
 import { Db } from "./db";
 import { DatabaseModule } from "./common/database.module";
@@ -25,6 +26,7 @@ class HealthController {
     DatabaseModule,
     AuthModule,
     MembershipModule,
+    PaymentModule,
     ScheduleModule,
     CatalogModule,
     MediaModule,

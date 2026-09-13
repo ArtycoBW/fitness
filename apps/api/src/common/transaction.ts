@@ -6,7 +6,7 @@ export async function atomic<T>(
   db: Db,
   fn: (tx: Tx) => Promise<T>,
 ): Promise<T> {
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 8; attempt++) {
     try {
       return await db.$transaction(fn, {
         isolationLevel: "Serializable",
@@ -22,7 +22,16 @@ export async function atomic<T>(
           (e.code === "P2010" &&
             adapter?.cause?.kind === "TransactionWriteConflict");
         if (retryable) {
-          if (attempt < 3) continue;
+          if (attempt < 7) {
+            await new Promise((resolve) =>
+              setTimeout(
+                resolve,
+                Math.min(250, 15 * 2 ** attempt) +
+                  Math.floor(Math.random() * 40),
+              ),
+            );
+            continue;
+          }
           fail(
             "CONCURRENT_MODIFICATION",
             "Данные изменяются другим запросом. Повторите действие",
