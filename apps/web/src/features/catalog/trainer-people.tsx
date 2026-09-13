@@ -5,6 +5,8 @@ import { api, post } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { dateTime, inputToUtc } from "@/lib/format";
+import { CancelPeriod } from "./cancel-period";
 export function TrainerPeople() {
   const { data, error } = useQuery({
     queryKey: ["trainer-clients"],
@@ -55,6 +57,7 @@ export function TrainerAvailability() {
           startAt: string;
           endAt: string;
           reason: string;
+          cancelledAt?: string | null;
         }>;
       }>("/trainer/availability"),
   });
@@ -113,10 +116,14 @@ export function TrainerAvailability() {
           {data?.absences.map((a) => (
             <article className="timeline" key={a.id}>
               <p>
-                {new Date(a.startAt).toLocaleString("ru-RU")} —{" "}
-                {new Date(a.endAt).toLocaleString("ru-RU")}
+                {dateTime(a.startAt)} — {dateTime(a.endAt)}
               </p>
               <span className="muted">{a.reason}</span>
+              {a.cancelledAt ? (
+                <span className="status-pill">Отменён</span>
+              ) : (
+                <CancelPeriod path={`/trainer/availability/${a.id}/cancel`} />
+              )}
             </article>
           ))}
         </section>
@@ -130,8 +137,8 @@ export function TrainerAvailability() {
               const fd = new FormData(form);
               mutation.mutate(
                 {
-                  startAt: new Date(String(fd.get("startAt"))).toISOString(),
-                  endAt: new Date(String(fd.get("endAt"))).toISOString(),
+                  startAt: inputToUtc(String(fd.get("startAt"))),
+                  endAt: inputToUtc(String(fd.get("endAt"))),
                   reason: fd.get("reason"),
                 },
                 { onSuccess: () => form.reset() },

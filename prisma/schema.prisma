@@ -127,6 +127,8 @@ model ClientProfile {
 }
 
 model TrainerProfile {
+  sessions     ScheduledSession[]
+  occupancies  TrainerOccupancy[]
   planVersions MembershipPlanVersion[] @relation("PlanTrainers")
   specialties  String[]                @default([])
   workingHours Json                    @default("[]")
@@ -198,6 +200,8 @@ model TrainerClient {
 }
 
 model Hall {
+  sessions     ScheduledSession[]
+  occupancies  HallOccupancy[]
   planVersions MembershipPlanVersion[] @relation("PlanHalls")
   id           String                  @id @default(uuid()) @db.Uuid
   name         String
@@ -213,28 +217,33 @@ model Hall {
 }
 
 model HallClosure {
-  id      String   @id @default(uuid()) @db.Uuid
-  hallId  String   @db.Uuid
-  startAt DateTime
-  endAt   DateTime
-  reason  String
-  hall    Hall     @relation(fields: [hallId], references: [id], onDelete: Restrict)
+  cancelledAt DateTime?
+  occupancy   HallOccupancy?
+  id          String         @id @default(uuid()) @db.Uuid
+  hallId      String         @db.Uuid
+  startAt     DateTime
+  endAt       DateTime
+  reason      String
+  hall        Hall           @relation(fields: [hallId], references: [id], onDelete: Restrict)
 
   @@index([hallId, startAt, endAt])
 }
 
 model TrainerAbsence {
-  id        String         @id @default(uuid()) @db.Uuid
-  trainerId String         @db.Uuid
-  startAt   DateTime
-  endAt     DateTime
-  reason    String
-  trainer   TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+  cancelledAt DateTime?
+  occupancy   TrainerOccupancy?
+  id          String            @id @default(uuid()) @db.Uuid
+  trainerId   String            @db.Uuid
+  startAt     DateTime
+  endAt       DateTime
+  reason      String
+  trainer     TrainerProfile    @relation(fields: [trainerId], references: [id], onDelete: Restrict)
 
   @@index([trainerId, startAt, endAt])
 }
 
 model WorkoutType {
+  sessions        ScheduledSession[]
   planVersions    MembershipPlanVersion[] @relation("PlanWorkouts")
   id              String                  @id @default(uuid()) @db.Uuid
   name            String
@@ -250,6 +259,74 @@ model WorkoutType {
   published       Boolean                 @default(false)
   archivedAt      DateTime?
   version         Int                     @default(1)
+}
+
+model SessionSeries {
+  id         String             @id @default(uuid()) @db.Uuid
+  definition Json
+  version    Int                @default(1)
+  createdBy  String             @db.Uuid
+  createdAt  DateTime           @default(now())
+  sessions   ScheduledSession[]
+}
+
+model ScheduledSession {
+  id               String            @id @default(uuid()) @db.Uuid
+  seriesId         String?           @db.Uuid
+  occurrenceDate   String?
+  workoutId        String            @db.Uuid
+  trainerId        String            @db.Uuid
+  hallId           String            @db.Uuid
+  startAt          DateTime
+  endAt            DateTime
+  capacity         Int
+  status           String            @default("DRAFT")
+  policySnapshot   Json
+  version          Int               @default(1)
+  cancelledReason  String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  series           SessionSeries?    @relation(fields: [seriesId], references: [id], onDelete: Restrict)
+  workout          WorkoutType       @relation(fields: [workoutId], references: [id], onDelete: Restrict)
+  trainer          TrainerProfile    @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+  hall             Hall              @relation(fields: [hallId], references: [id], onDelete: Restrict)
+  hallOccupancy    HallOccupancy?
+  trainerOccupancy TrainerOccupancy?
+
+  @@unique([seriesId, occurrenceDate])
+  @@index([status, startAt])
+  @@index([trainerId, startAt])
+  @@index([hallId, startAt])
+}
+
+model HallOccupancy {
+  id        String            @id @default(uuid()) @db.Uuid
+  hallId    String            @db.Uuid
+  sessionId String?           @unique @db.Uuid
+  closureId String?           @unique @db.Uuid
+  startAt   DateTime
+  endAt     DateTime
+  active    Boolean           @default(true)
+  hall      Hall              @relation(fields: [hallId], references: [id], onDelete: Restrict)
+  session   ScheduledSession? @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  closure   HallClosure?      @relation(fields: [closureId], references: [id], onDelete: Restrict)
+
+  @@index([hallId, startAt, endAt])
+}
+
+model TrainerOccupancy {
+  id        String            @id @default(uuid()) @db.Uuid
+  trainerId String            @db.Uuid
+  sessionId String?           @unique @db.Uuid
+  absenceId String?           @unique @db.Uuid
+  startAt   DateTime
+  endAt     DateTime
+  active    Boolean           @default(true)
+  trainer   TrainerProfile    @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+  session   ScheduledSession? @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  absence   TrainerAbsence?   @relation(fields: [absenceId], references: [id], onDelete: Restrict)
+
+  @@index([trainerId, startAt, endAt])
 }
 
 model MembershipPlan {

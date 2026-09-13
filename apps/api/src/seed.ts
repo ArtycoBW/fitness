@@ -1,6 +1,10 @@
 import { hash } from "argon2";
 import { Db } from "./db";
 import { env } from "./config";
+import { ResourceService } from "./modules/schedule/resource.service";
+import { ScheduleService } from "./modules/schedule/schedule.service";
+import { atomic } from "./common/transaction";
+import type { Principal } from "./modules/auth/access";
 async function seed() {
   if (env.NODE_ENV === "production")
     throw new Error("Seed is disabled in production");
@@ -252,6 +256,48 @@ async function seed() {
           versions: { create: { ...terms, number: 1 } },
         },
       });
+    }
+    const schedule = new ScheduleService(db, new ResourceService());
+    const actor = { id: owner.id, roles: ["OWNER"] } as Principal;
+    const firstDay = new Date(Date.now() + 10800000).toISOString().slice(0, 10);
+    for (let offset = 0; offset < 14; offset++) {
+      const day = new Date(
+        new Date(firstDay + "T12:00:00Z").getTime() + offset * 86400000,
+      )
+        .toISOString()
+        .slice(0, 10);
+      for (const [workoutSlug, trainerSlug, hallSlug, time] of [
+        ["pilates", "anna-sokolova", "studio", "08:00"],
+        ["strength", "maksim-orlov", "strength", "09:00"],
+        ["yoga", "elena-mironova", "studio", "18:00"],
+        ["mobility", "anna-sokolova", "studio", "19:30"],
+      ]) {
+        const startAt = new Date(day + "T" + time + ":00+03:00");
+        if (startAt <= new Date()) continue;
+        const workout = await db.workoutType.findUniqueOrThrow({
+            where: { slug: workoutSlug },
+          }),
+          trainer = await db.trainerProfile.findUniqueOrThrow({
+            where: { slug: trainerSlug },
+          }),
+          hall = await db.hall.findUniqueOrThrow({ where: { slug: hallSlug } });
+        if (
+          !(await db.scheduledSession.findFirst({
+            where: { workoutId: workout.id, trainerId: trainer.id, startAt },
+          }))
+        )
+          await atomic(db, (tx) =>
+            schedule.createOne(tx, actor, {
+              workoutId: workout.id,
+              trainerId: trainer.id,
+              hallId: hall.id,
+              startAt: startAt.toISOString(),
+              endAt: new Date(startAt.getTime() + 3600000).toISOString(),
+              capacity: Math.min(hall.capacity, workout.capacity),
+              status: "PUBLISHED",
+            }),
+          );
+      }
     }
     await db.auditLog.create({
       data: {

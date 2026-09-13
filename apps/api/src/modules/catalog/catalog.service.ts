@@ -21,9 +21,13 @@ import {
 import type { Principal } from "../auth/access";
 import { token, digest, seal } from "../../common/crypto";
 import { env } from "../../config";
+import { ResourceService } from "../schedule/resource.service";
 @Injectable()
 export class CatalogService {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly resources: ResourceService,
+  ) {}
   async list(kindRaw: string, query: unknown) {
     const kind = parse(kindSchema, kindRaw),
       q = parse(listQuery, query);
@@ -218,6 +222,7 @@ export class CatalogService {
         );
         row = await tx.trainerProfile.findUniqueOrThrow({ where: { id } });
       }
+      if (id) await this.resources.checkCatalogChange(tx, kind, id);
       await audit(tx, auth.id, id ? "UPDATED" : "CREATED", kind, row.id);
       return row;
     });
@@ -268,6 +273,7 @@ export class CatalogService {
                   },
                 });
       changed(result.count);
+      if (data.archived) await this.resources.checkCatalogChange(tx, kind, id);
       await audit(
         tx,
         auth.id,
@@ -401,6 +407,24 @@ export class CatalogService {
               data: { trainerId: id, ...data },
             });
       await audit(tx, auth.id, "UNAVAILABLE", "" + kind, id, {}, dto.reason);
+      if (kind === "halls")
+        await tx.hallOccupancy.create({
+          data: {
+            hallId: id,
+            closureId: result.id,
+            startAt: data.startAt,
+            endAt: data.endAt,
+          },
+        });
+      else
+        await tx.trainerOccupancy.create({
+          data: {
+            trainerId: id,
+            absenceId: result.id,
+            startAt: data.startAt,
+            endAt: data.endAt,
+          },
+        });
       return result;
     });
   }
@@ -456,5 +480,56 @@ export class CatalogService {
   async ownAbsence(auth: Principal, body: unknown) {
     if (!auth.trainerId) fail("FORBIDDEN", "Профиль тренера не найден", 403);
     return this.interval(auth, "trainers", auth.trainerId, body);
+  }
+  async cancelInterval(
+    auth: Principal,
+    kind: string,
+    id: string,
+    periodId: string,
+    body: unknown,
+  ) {
+    parse(z.enum(["halls", "trainers"]), kind);
+    parse(uuid, id);
+    parse(uuid, periodId);
+    const dto = parse(z.strictObject({ reason }), body);
+    if (
+      !auth.roles.some((r) => ["OWNER", "ADMIN"].includes(r)) &&
+      (kind !== "trainers" || auth.trainerId !== id)
+    )
+      fail("FORBIDDEN", "Недостаточно прав", 403);
+    return atomic(this.db, async (tx) => {
+      const changed =
+        kind === "halls"
+          ? await tx.hallClosure.updateMany({
+              where: { id: periodId, hallId: id, cancelledAt: null },
+              data: { cancelledAt: new Date() },
+            })
+          : await tx.trainerAbsence.updateMany({
+              where: { id: periodId, trainerId: id, cancelledAt: null },
+              data: { cancelledAt: new Date() },
+            });
+      if (!changed.count)
+        fail("NOT_FOUND", "Период не найден или уже отменён", 404);
+      if (kind === "halls")
+        await tx.hallOccupancy.updateMany({
+          where: { closureId: periodId },
+          data: { active: false },
+        });
+      else
+        await tx.trainerOccupancy.updateMany({
+          where: { absenceId: periodId },
+          data: { active: false },
+        });
+      await audit(
+        tx,
+        auth.id,
+        "AVAILABILITY_RESTORED",
+        kind,
+        id,
+        { periodId },
+        dto.reason,
+      );
+      return { message: "Период отменён" };
+    });
   }
 }

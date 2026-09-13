@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "./workspace.css";
 @import "./memberships.css";
+@import "./schedule.css";
 @custom-variant dark (&:is(.dark *));
 :root {
   --background: #fffefc;

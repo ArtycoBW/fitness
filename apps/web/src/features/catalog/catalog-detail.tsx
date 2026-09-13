@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, ArrowLeft, Archive, Mail, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { ImageUpload } from "@/components/image-upload";
+import { dateTime, inputToUtc } from "@/lib/format";
+import { CancelPeriod } from "./cancel-period";
 import { api, post, type User } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +24,20 @@ interface Detail extends Row {
   userId?: string;
   notes?: { id: string; text: string; createdAt: string }[];
   trainers?: { trainerId: string; trainer: { user: { name: string } } }[];
-  absences?: { id: string; startAt: string; endAt: string; reason: string }[];
-  closures?: { id: string; startAt: string; endAt: string; reason: string }[];
+  absences?: {
+    id: string;
+    startAt: string;
+    endAt: string;
+    reason: string;
+    cancelledAt?: string | null;
+  }[];
+  closures?: {
+    id: string;
+    startAt: string;
+    endAt: string;
+    reason: string;
+    cancelledAt?: string | null;
+  }[];
 }
 export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
   const qc = useQueryClient();
@@ -198,7 +212,7 @@ export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
             <div className="timeline">
               {item.notes?.map((n) => (
                 <article key={n.id}>
-                  <small>{new Date(n.createdAt).toLocaleString("ru-RU")}</small>
+                  <small>{dateTime(n.createdAt)}</small>
                   <p>{n.text}</p>
                 </article>
               ))}
@@ -225,10 +239,18 @@ export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
               periods.map((p) => (
                 <div className="timeline" key={p.id}>
                   <p>
-                    {new Date(p.startAt).toLocaleString("ru-RU")} —{" "}
-                    {new Date(p.endAt).toLocaleString("ru-RU")}
+                    {dateTime(p.startAt)} — {dateTime(p.endAt)}
                   </p>
                   <span className="muted">{p.reason}</span>
+                  {p.cancelledAt ? (
+                    <span className="status-pill">Отменён</span>
+                  ) : (
+                    admin && (
+                      <CancelPeriod
+                        path={`/catalog/${kind}/${id}/periods/${p.id}/cancel`}
+                      />
+                    )
+                  )}
                 </div>
               ))
             ) : (
@@ -284,12 +306,8 @@ export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
                       : action === "trainers"
                         ? { trainerId: fd.get("trainerId"), assigned: true }
                         : {
-                            startAt: new Date(
-                              String(fd.get("startAt")),
-                            ).toISOString(),
-                            endAt: new Date(
-                              String(fd.get("endAt")),
-                            ).toISOString(),
+                            startAt: inputToUtc(String(fd.get("startAt"))),
+                            endAt: inputToUtc(String(fd.get("endAt"))),
                             reason: fd.get("reason"),
                           };
               mutation.mutate({ action, data });

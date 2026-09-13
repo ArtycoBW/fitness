@@ -15,10 +15,12 @@ import {
   DoorOpen,
   Activity,
   CreditCard,
+  CalendarDays,
 } from "lucide-react";
 import { api, post, workspace, type User, ApiError } from "@/lib/api";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 export const adminNavigation = [
+  { path: "schedule", label: "Расписание", icon: CalendarDays },
   { path: "clients", label: "Клиенты", icon: Users },
   { path: "trainers", label: "Тренеры", icon: Dumbbell },
   { path: "halls", label: "Залы", icon: DoorOpen },
@@ -119,6 +121,11 @@ export function AppShell({
             )}
             {area === "trainer" && (
               <>
+                <SidebarLink
+                  href="/trainer/schedule"
+                  label="Расписание"
+                  icon={<CalendarDays size={20} />}
+                />
                 <SidebarLink
                   href="/trainer/clients"
                   label="Мои клиенты"

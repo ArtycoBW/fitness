@@ -10,11 +10,23 @@ import {
   Module,
 } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
+import { ResourceModule } from "../schedule/resource.service";
 import { AuthRequest, Public, Roles } from "../auth/access";
 @Controller("catalog")
 @Roles("OWNER", "ADMIN", "RECEPTION")
 export class CatalogController {
   constructor(private readonly service: CatalogService) {}
+  @Roles("OWNER", "ADMIN")
+  @Post(":kind/:id/periods/:periodId/cancel")
+  cancelPeriod(
+    @Param("kind") kind: string,
+    @Param("id") id: string,
+    @Param("periodId") periodId: string,
+    @Body() body: unknown,
+    @Req() req: AuthRequest,
+  ) {
+    return this.service.cancelInterval(req.auth, kind, id, periodId, body);
+  }
   @Get(":kind") list(@Param("kind") kind: string, @Query() query: unknown) {
     return this.service.list(kind, query);
   }
@@ -93,14 +105,23 @@ export class CatalogController {
 @Controller()
 export class PublicCatalogController {
   constructor(private readonly service: CatalogService) {}
-  @Public() @Get("public/:kind") list(@Param("kind") kind: string) {
-    return this.service.publicList(kind);
+  @Public() @Get("public/halls") halls() {
+    return this.service.publicList("halls");
   }
-  @Public() @Get("public/:kind/:slug") detail(
-    @Param("kind") kind: string,
-    @Param("slug") slug: string,
-  ) {
-    return this.service.publicList(kind, slug);
+  @Public() @Get("public/halls/:slug") hall(@Param("slug") slug: string) {
+    return this.service.publicList("halls", slug);
+  }
+  @Public() @Get("public/workouts") workouts() {
+    return this.service.publicList("workouts");
+  }
+  @Public() @Get("public/workouts/:slug") workout(@Param("slug") slug: string) {
+    return this.service.publicList("workouts", slug);
+  }
+  @Public() @Get("public/trainers") trainers() {
+    return this.service.publicList("trainers");
+  }
+  @Public() @Get("public/trainers/:slug") trainer(@Param("slug") slug: string) {
+    return this.service.publicList("trainers", slug);
   }
   @Roles("TRAINER") @Get("trainer/clients") clients(@Req() req: AuthRequest) {
     return this.service.ownClients(req.auth);
@@ -116,8 +137,22 @@ export class PublicCatalogController {
   ) {
     return this.service.ownAbsence(req.auth, body);
   }
+  @Roles("TRAINER") @Post("trainer/availability/:id/cancel") cancelAbsence(
+    @Req() req: AuthRequest,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    return this.service.cancelInterval(
+      req.auth,
+      "trainers",
+      req.auth.trainerId ?? "",
+      id,
+      body,
+    );
+  }
 }
 @Module({
+  imports: [ResourceModule],
   controllers: [CatalogController, PublicCatalogController],
   providers: [CatalogService],
   exports: [CatalogService],

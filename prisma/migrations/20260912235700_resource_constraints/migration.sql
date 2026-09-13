@@ -1,0 +1,5 @@
+ALTER TABLE "ScheduledSession" ADD CONSTRAINT "session_dates_valid" CHECK ("endAt">"startAt"), ADD CONSTRAINT "session_capacity_positive" CHECK ("capacity">0);
+ALTER TABLE "HallOccupancy" ADD CONSTRAINT "hall_source_single" CHECK (num_nonnulls("sessionId","closureId")=1), ADD CONSTRAINT "hall_occupancy_dates" CHECK ("endAt">"startAt"), ADD CONSTRAINT "hall_no_overlap" EXCLUDE USING gist ("hallId" WITH =,tsrange("startAt","endAt",'[)') WITH &&) WHERE (active);
+ALTER TABLE "TrainerOccupancy" ADD CONSTRAINT "trainer_source_single" CHECK (num_nonnulls("sessionId","absenceId")=1), ADD CONSTRAINT "trainer_occupancy_dates" CHECK ("endAt">"startAt"), ADD CONSTRAINT "trainer_no_overlap" EXCLUDE USING gist ("trainerId" WITH =,tsrange("startAt","endAt",'[)') WITH &&) WHERE (active);
+INSERT INTO "HallOccupancy" (id,"hallId","closureId","startAt","endAt",active) SELECT gen_random_uuid(),"hallId",id,"startAt","endAt",true FROM "HallClosure" WHERE "cancelledAt" IS NULL;
+INSERT INTO "TrainerOccupancy" (id,"trainerId","absenceId","startAt","endAt",active) SELECT gen_random_uuid(),"trainerId",id,"startAt","endAt",true FROM "TrainerAbsence" WHERE "cancelledAt" IS NULL;
