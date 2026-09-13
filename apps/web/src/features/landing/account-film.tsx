@@ -39,8 +39,14 @@ export function AccountFilm() {
     <div className="account-film">
       <video
         ref={video}
-        src={near && !reduced ? "/media/account-preview-loop.mp4" : undefined}
-        poster="/media/account-preview.webp"
+        src={
+          near && !reduced
+            ? "/media/account-preview-loop.mp4?v=20260913-hd"
+            : undefined
+        }
+        poster="/media/account-preview.webp?v=20260913-hd"
+        width={2560}
+        height={1776}
         muted
         loop
         playsInline
