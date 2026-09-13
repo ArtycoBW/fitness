@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { CalendarDays } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -63,13 +64,13 @@ export function NextSessions() {
               {s.freePlaces ? `${s.freePlaces} мест` : "Очередь"}
             </span>
             <span className="round-link" aria-hidden="true">
-              {" "}
+              <CalendarDays size={17} strokeWidth={1.5} />
             </span>
           </Link>
         ))
       ) : (
         <p>
-          Скоро здесь появятся новые занятия.{" "}
+          В ближайшие дни занятий нет.{" "}
           <Link href="/schedule">Посмотреть календарь </Link>
         </p>
       )}

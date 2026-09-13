@@ -83,7 +83,7 @@ export default async function Home() {
               делает каждый день лучше.
             </p>
             <Link href="#directions" className="text-arrow">
-              Найти своё направление <span>↗</span>
+              Найти своё направление
             </Link>
           </div>
         </section>
@@ -140,7 +140,7 @@ export default async function Home() {
                 </h2>
               </div>
               <Link href="/schedule" className="landing-button outline">
-                Всё расписание ↗
+                Всё расписание
               </Link>
             </div>
             <NextSessions />
@@ -192,7 +192,7 @@ export default async function Home() {
                     </li>
                   </ul>
                   <Link href="/memberships" className="landing-button outline">
-                    Выбрать абонемент ↗
+                    Выбрать абонемент
                   </Link>
                 </article>
               );
@@ -218,7 +218,7 @@ export default async function Home() {
               прогресс в программе. В удобное вам время.
             </p>
             <Link href="/register" className="landing-button">
-              Создать аккаунт ↗
+              Создать аккаунт
             </Link>
           </div>
           <div className="account-preview-image" data-reveal>
