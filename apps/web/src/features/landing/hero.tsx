@@ -2,7 +2,6 @@
 
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ScrollCue } from "./scroll-cue";
 import { Button } from "@/components/ui/button";
 import { Pause, Play } from "lucide-react";
 import { heroRevealConfig } from "./stride/hero-reveal.config";
@@ -172,7 +171,6 @@ export function Hero({
           <a href="#contact">Познакомиться с клубом</a>
         </aside>
       </div>
-      <ScrollCue target="club" />
     </section>
   );
 }

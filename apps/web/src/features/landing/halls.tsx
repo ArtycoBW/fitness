@@ -1,10 +1,18 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Minus,
+  Plus,
+  RotateCcw,
+} from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { PublicItem } from "./types";
-import type { mountHallScene } from "./hall-scene";
+import type { mountHallScene } from "./hall-world";
+import { workoutPhoto } from "./media";
 export function Halls({ items }: { items: PublicItem[] }) {
   const canvas = useRef<HTMLCanvasElement>(null),
     scene = useRef<ReturnType<typeof mountHallScene> | null>(null),
@@ -14,12 +22,19 @@ export function Halls({ items }: { items: PublicItem[] }) {
   useEffect(() => {
     const node = canvas.current;
     if (!node || !items.length) return;
-    let disposed = false;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
+    let disposed = false,
+      inView = false,
+      started = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const prepare = () => {
+      clearTimeout(timer);
+      if (!inView || started) return;
+      timer = setTimeout(() => {
+        if (disposed || !inView) return;
+        started = true;
         io.disconnect();
-        void import("./hall-scene")
+        window.removeEventListener("scroll", prepare);
+        void import("./hall-world")
           .then(({ mountHallScene }) => {
             if (disposed) return;
             try {
@@ -28,11 +43,20 @@ export function Halls({ items }: { items: PublicItem[] }) {
               setFailed(true);
             }
           })
-          .catch(() => setFailed(true));
+          .catch(() => {
+            if (!disposed) setFailed(true);
+          });
+      }, 280);
+    };
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = !!entry?.isIntersecting;
+        prepare();
       },
-      { rootMargin: "200px" },
+      { threshold: 0.15 },
     );
     io.observe(node);
+    window.addEventListener("scroll", prepare, { passive: true });
     const lost = (e: Event) => {
       e.preventDefault();
       if (!disposed) {
@@ -43,6 +67,8 @@ export function Halls({ items }: { items: PublicItem[] }) {
     node.addEventListener("webglcontextlost", lost);
     return () => {
       disposed = true;
+      clearTimeout(timer);
+      window.removeEventListener("scroll", prepare);
       io.disconnect();
       node.removeEventListener("webglcontextlost", lost);
       scene.current?.dispose();
@@ -53,65 +79,76 @@ export function Halls({ items }: { items: PublicItem[] }) {
     scene.current?.select(active);
   }, [active, ready]);
   const item = items[active];
-  if (!item) return <p>Залы скоро появятся здесь.</p>;
+  if (!item) return <p>Информация о пространствах временно недоступна.</p>;
   return (
     <div className="hall-experience">
       <div className="hall-canvas-wrap">
-        <svg
+        <img
           className="hall-fallback"
-          viewBox="0 0 650 450"
-          aria-label="Схема зала"
-          role="img"
-        >
-          <g transform="translate(330 190) rotate(-30) skewX(30)">
-            <rect
-              x="-170"
-              y="-110"
-              width="340"
-              height="230"
-              rx="5"
-              fill="#d4c5a8"
-              stroke="#0f3e17"
-            />
-            {[-105, 30].flatMap((x) =>
-              [-65, 30].map((y) => (
-                <rect
-                  key={x + ":" + y}
-                  x={x}
-                  y={y}
-                  width="72"
-                  height="55"
-                  rx="6"
-                  fill="#b1dbb8"
-                  stroke="#0f3e17"
-                />
-              )),
-            )}
-            <path
-              d="M-170 120V-110H170"
-              fill="none"
-              stroke="#fffefc"
-              strokeWidth="14"
-            />
-          </g>
-          <text
-            x="325"
-            y="380"
-            textAnchor="middle"
-            fill="#0f3e17"
-            fontSize="19"
-          >
-            {item.name}
-          </text>
-        </svg>
+          src={workoutPhoto(
+            /сил/i.test(item.name)
+              ? "Силовая тренировка"
+              : /персон/i.test(item.name)
+                ? "Пилатес"
+                : "Йога",
+          )}
+          alt={item.name}
+        />
         <canvas
           ref={canvas}
-          aria-hidden="true"
+          role="img"
+          aria-label={
+            "Интерактивный интерьер: " +
+            item.name +
+            ". Перетаскивайте для обзора или используйте кнопки управления."
+          }
           style={{ opacity: ready && !failed ? 1 : 0 }}
         />
-        <span className="hall-caption">
-          ПРОСТРАНСТВО ДЛЯ ДВИЖЕНИЯ · {String(active + 1).padStart(2, "0")}
-        </span>
+        {ready && !failed && (
+          <div className="hall-view-controls" aria-label="Управление обзором">
+            <span>Осмотритесь внутри</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Повернуть влево"
+              onClick={() => scene.current?.turn(-1)}
+            >
+              <ChevronLeft />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Повернуть вправо"
+              onClick={() => scene.current?.turn(1)}
+            >
+              <ChevronRight />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Приблизить интерьер"
+              onClick={() => scene.current?.zoom(-6)}
+            >
+              <Plus />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Отдалить интерьер"
+              onClick={() => scene.current?.zoom(6)}
+            >
+              <Minus />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Исходный ракурс"
+              onClick={() => scene.current?.reset()}
+            >
+              <RotateCcw />
+            </Button>
+          </div>
+        )}
       </div>
       <div className="hall-details">
         <div className="hall-tabs" role="group" aria-label="Выбор зала">
@@ -141,12 +178,14 @@ export function Halls({ items }: { items: PublicItem[] }) {
             </div>
           </dl>
         </div>
-        <Link className="landing-button" href={"/schedule?hallId=" + item.id}>
-          Расписание зала <span> </span>
-        </Link>
-        <Link className="table-link mt-5" href={"/halls/" + item.slug}>
-          Подробнее о пространстве{" "}
-        </Link>
+        <div className="hall-actions">
+          <Button asChild size="lg">
+            <Link href={"/schedule?hallId=" + item.id}>Расписание зала</Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href={"/halls/" + item.slug}>Подробнее о пространстве</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

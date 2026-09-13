@@ -111,7 +111,7 @@ export function WorkspaceModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="sr-only">
-            Раздел личного кабинета
+            Расписание, абонементы и услуги клуба
           </DialogDescription>
         </DialogHeader>
         {overlay && (

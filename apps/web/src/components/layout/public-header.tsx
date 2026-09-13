@@ -2,12 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState, type MouseEvent } from "react";
-import {
-  motion,
-  useScroll,
-  useMotionValueEvent,
-  useReducedMotion,
-} from "motion/react";
+import { useScroll, useMotionValueEvent, useReducedMotion } from "motion/react";
 import { Menu } from "lucide-react";
 import {
   Sheet,
@@ -83,11 +78,7 @@ export function PublicHeader() {
       <a href="#main-content" className="skip-link">
         Перейти к содержимому
       </a>
-      <motion.div
-        className="nav-capsule"
-        layout
-        transition={{ duration: reduce ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}
-      >
+      <div className="nav-capsule">
         <div className="nav-expanded" inert={!expanded}>
           <Link
             href={href("home")}
@@ -185,7 +176,7 @@ export function PublicHeader() {
             </nav>
           </SheetContent>
         </Sheet>
-      </motion.div>
+      </div>
     </header>
   );
 }

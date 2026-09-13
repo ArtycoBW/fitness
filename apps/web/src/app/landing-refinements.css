@@ -1,14 +1,26 @@
 html {
   scroll-behavior: smooth;
 }
+@media (min-width: 1001px) {
+  html.stride-scroll {
+    scroll-snap-type: y proximity;
+  }
+  .stride-scroll .landing-main > section,
+  .stride-scroll footer#footer {
+    scroll-snap-align: start;
+  }
+}
 .landing-main > section {
   position: relative;
   min-height: 100dvh;
   scroll-margin-top: 0;
+  box-sizing: border-box;
+  margin-block: 0;
+  max-width: none;
 }
 .landing-main > .landing-section {
   width: 100%;
-  padding: 100px 60px 86px;
+  padding: 106px max(5vw, calc((100vw - 1440px) / 2)) 72px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -23,7 +35,7 @@ html {
 .landing-main > .team-section,
 .landing-main > .schedule-band,
 .landing-main > .contact-section {
-  padding: 100px max(5vw, 24px) 80px;
+  padding: 106px max(5vw, calc((100vw - 1440px) / 2)) 72px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -31,6 +43,8 @@ html {
 .landing-main > section > .landing-section {
   padding: 0;
   width: 100%;
+  max-width: none;
+  margin: 0;
 }
 .landing .section-heading {
   margin-bottom: 34px;
@@ -106,18 +120,34 @@ html {
 .faq-accordion [data-slot="accordion-content"] p {
   padding-bottom: 12px;
 }
-.scroll-cue {
-  position: absolute;
-  bottom: 24px;
+.scroll-cue[data-slot="button"] {
+  position: fixed;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   width: 44px;
   height: 44px;
   display: grid;
   place-items: center;
-  z-index: 4;
-  color: inherit;
+  padding: 0;
+  min-height: 44px;
+  z-index: 44;
+  color: #0f3e17;
+  background: #fffefce6;
+  border-radius: 50%;
   opacity: 0.8;
+  transition:
+    opacity 0.35s,
+    background 0.35s;
+}
+.scroll-cue[data-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.scroll-cue[data-light="true"] {
+  color: #fffefc;
+  background: #122c1b80;
 }
 .scroll-wheel {
   position: absolute;
@@ -130,6 +160,8 @@ html {
   animation: scroll-wheel 1.8s ease-in-out infinite;
 }
 .scroll-cue > svg {
+  width: 27px;
+  height: 27px;
   animation: mouse-breathe 2.8s ease-in-out infinite;
 }
 @keyframes scroll-wheel {
@@ -156,9 +188,9 @@ html {
   display: grid;
   grid-template-columns: 0.85fr 1.15fr;
   gap: 0;
-  width: min(1200px, 100%);
+  width: 100%;
   margin-inline: auto;
-  height: min(56dvh, 570px);
+  height: min(60dvh, 630px);
   min-height: 360px;
   border-radius: 18px;
   overflow: hidden;
@@ -339,10 +371,22 @@ footer.cinematic-footer {
   display: flex;
   width: max-content;
   animation: footer-marquee 45s linear infinite;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  justify-content: flex-start;
+}
+.footer-marquee-group {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 110vw;
+  align-items: center;
+  justify-content: space-around;
 }
 .footer-ribbon span {
   white-space: nowrap;
-  margin-right: 30px;
+  margin: 0;
+  padding-inline: 32px;
 }
 @keyframes footer-marquee {
   to {
@@ -531,6 +575,359 @@ footer.cinematic-footer .footer-meta {
 }
 .account-film {
   position: relative;
+}
+
+/* Almanac keeps a full viewport on screen while its cards advance through the scroll. */
+.landing-main > .team-section {
+  height: auto;
+  padding: 0;
+  display: block;
+}
+.almanac-scroll {
+  position: relative;
+}
+.almanac-viewport {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  padding: 108px max(5vw, calc((100vw - 1440px) / 2)) 74px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.almanac-viewport .section-heading {
+  flex: 0 0 auto;
+  margin-bottom: 50px;
+}
+.almanac-navigation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.almanac-navigation > span {
+  margin-right: 20px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.almanac-stack {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+}
+.almanac-stack .almanac-card {
+  position: absolute;
+  inset: 0;
+  top: 0;
+  margin: 0;
+  min-height: 0;
+  height: 100%;
+  gap: 24px;
+  padding: 20px;
+  grid-template-columns: 42% 1fr;
+  border-radius: 18px;
+}
+.almanac-stack .almanac-media {
+  min-height: 0;
+}
+.almanac-cover {
+  object-position: center 28%;
+}
+.almanac-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.almanac-body h3 {
+  font-size: clamp(36px, 3.3vw, 56px);
+}
+.almanac-body .eyebrow {
+  margin-bottom: 0;
+  font-size: 10px;
+}
+.almanac-foot {
+  justify-content: flex-start;
+  gap: 20px;
+}
+.hall-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 22px;
+  margin-top: 26px;
+}
+.hall-details {
+  display: flex;
+  flex-direction: column;
+}
+.hall-details .hall-actions {
+  margin-top: auto;
+  padding-top: 22px;
+}
+.hall-experience {
+  min-height: 0;
+}
+.hall-fallback {
+  object-fit: cover;
+}
+.hall-canvas-wrap {
+  background: #e4e0d6;
+}
+.hall-canvas-wrap canvas {
+  cursor: grab;
+  transition: opacity 0.8s;
+}
+.hall-canvas-wrap canvas:active {
+  cursor: grabbing;
+}
+.hall-view-controls {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  right: 18px;
+  width: fit-content;
+  max-width: calc(100% - 36px);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 8px;
+  border-radius: 12px;
+  background: #fffefcf2;
+  box-shadow: 0 4px 20px #13271a14;
+}
+.hall-view-controls > span {
+  padding-inline: 10px 18px;
+  font-size: 11px;
+}
+.hall-view-controls [data-slot="button"] {
+  width: 32px;
+  height: 34px;
+  padding: 0;
+  min-height: 34px;
+}
+.hall-view-controls svg {
+  width: 15px;
+  height: 15px;
+}
+.footer-center .brand-symbol {
+  mix-blend-mode: multiply;
+}
+@media (max-width: 767px) and (min-height: 760px) {
+  .landing-main > #spaces {
+    height: 100dvh;
+    display: flex;
+    padding-block: 96px 70px;
+  }
+  #spaces .section-heading {
+    margin-bottom: 18px;
+  }
+  #spaces .section-heading h2 {
+    font-size: 36px;
+  }
+  #spaces .section-heading > p {
+    display: none;
+  }
+  #spaces .hall-experience {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(190px, 1fr) auto;
+  }
+  #spaces .hall-canvas-wrap {
+    min-height: 0;
+  }
+  #spaces .hall-details {
+    padding: 16px;
+  }
+  #spaces .hall-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-bottom: 12px;
+    gap: 5px;
+  }
+  #spaces .hall-tabs button {
+    flex: 0 0 auto;
+    padding: 7px 9px;
+    min-height: 36px;
+    height: 36px;
+    font-size: 10px;
+  }
+  #spaces .hall-details h3 {
+    font-size: 29px;
+    margin-bottom: 8px;
+  }
+  #spaces .hall-details p {
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  #spaces .hall-details dl {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 10px;
+  }
+  #spaces .hall-details dl > div {
+    padding-block: 9px 0;
+  }
+  #spaces .hall-details .hall-actions {
+    padding-top: 14px;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+  #spaces .hall-actions [data-slot="button"] {
+    padding-inline: 10px;
+    font-size: 10px;
+  }
+}
+@media (max-width: 767px) {
+  .hall-view-controls > span {
+    padding-inline: 4px 10px;
+    font-size: 10px;
+  }
+}
+.hall-details dl {
+  margin-bottom: 0;
+}
+.landing-main > .club-intro {
+  grid-template-columns: 1.15fr 1fr;
+  gap: 9vw;
+}
+.club-intro h2 {
+  font-size: clamp(60px, 5.8vw, 96px);
+}
+.club-intro p.large-lead {
+  font-size: clamp(23px, 2vw, 32px);
+  max-width: 480px;
+}
+.landing-main > .club-intro > div:last-child {
+  padding-top: 0;
+}
+.landing-main .section-heading {
+  flex-shrink: 0;
+}
+.landing-main .photo-colonnade {
+  flex-shrink: 1;
+}
+@media (min-width: 1001px) {
+  .landing-main > section:not(.team-section) {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+  .landing-main
+    > .landing-section:not(.club-intro):not(.faq-section):not(
+      .account-preview
+    ) {
+    justify-content: flex-start;
+  }
+  .landing-main > .directions-section,
+  .landing-main > .schedule-band {
+    justify-content: flex-start;
+  }
+  .landing-main #spaces .hall-experience,
+  .landing-main .photo-colonnade {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
+  .hall-canvas-wrap {
+    min-height: 0;
+  }
+  .landing-main #plans .landing-plans {
+    flex: 1;
+    min-height: 0;
+  }
+  .landing-main #timetable > .landing-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .landing-sessions {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .landing-session {
+    flex: 1;
+    max-height: 150px;
+  }
+}
+@media (max-width: 1000px) {
+  .almanac-viewport {
+    padding: 100px 30px 72px;
+  }
+  .almanac-viewport .section-heading {
+    margin-bottom: 35px;
+  }
+  .almanac-body p {
+    font-size: 14px;
+  }
+}
+@media (max-width: 767px) {
+  .almanac-viewport {
+    padding: 94px 22px 70px;
+  }
+  .almanac-viewport .section-heading {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    align-items: center;
+  }
+  .almanac-viewport .section-heading h2 {
+    font-size: clamp(28px, 7vw, 38px);
+  }
+  .almanac-navigation {
+    gap: 4px;
+  }
+  .almanac-navigation > span {
+    display: none;
+  }
+  .almanac-navigation [data-slot="button"] {
+    width: 32px;
+    min-width: 32px;
+    height: 36px;
+    padding: 0;
+  }
+  .almanac-stack .almanac-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    padding: 12px;
+  }
+  .almanac-stack .almanac-media {
+    grid-row: 1;
+    aspect-ratio: auto;
+  }
+  .almanac-body {
+    padding: 2px 5px;
+  }
+  .almanac-body h3 {
+    font-size: 31px;
+    margin: 9px 0;
+  }
+  .almanac-body p {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .almanac-foot {
+    padding: 2px;
+    gap: 6px;
+  }
+  .almanac-foot [data-slot="button"] {
+    font-size: 11px;
+    padding-inline: 12px;
+  }
+  .landing-main > .club-intro {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .floating-header .nav-capsule {
+    transition: none;
+  }
 }
 .account-film video {
   display: block;

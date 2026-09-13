@@ -122,11 +122,15 @@ test("reduced motion and unavailable WebGL preserve usable content", async ({
     .getByRole("button")
     .last()
     .click();
-  await expect(page.getByRole("img", { name: "Схема зала" })).toBeVisible();
-  await page.getByRole("link", { name: "Расписание зала" }).click();
-  await expect(page).toHaveURL(/hallId=/);
   await expect(
-    page.getByRole("heading", { name: "Расписание занятий", exact: true }),
+    page.getByRole("img", { name: "Студия баланса", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Расписание зала" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(
+    page
+      .getByRole("dialog")
+      .getByRole("heading", { name: "Расписание занятий", exact: true }),
   ).toBeVisible();
 });
 

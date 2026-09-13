@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 export function LandingMotion() {
   useEffect(() => {
+    document.documentElement.classList.add("stride-scroll");
     let dispose = () => {},
       cancelled = false;
     void Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
@@ -20,12 +21,12 @@ export function LandingMotion() {
                 {
                   opacity: 1,
                   y: 0,
-                  ease: "none",
+                  duration: 1.35,
+                  ease: "power2.out",
                   scrollTrigger: {
                     trigger: el,
-                    start: "top 94%",
-                    end: "top 68%",
-                    scrub: 0.55,
+                    start: "top 88%",
+                    toggleActions: "play none none reverse",
                   },
                 },
               );
@@ -52,6 +53,7 @@ export function LandingMotion() {
       },
     );
     return () => {
+      document.documentElement.classList.remove("stride-scroll");
       cancelled = true;
       dispose();
     };

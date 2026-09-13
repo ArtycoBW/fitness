@@ -9,6 +9,8 @@ export default tseslint.config(
       "**/generated/**",
       ".local/**",
       ".agents/**",
+      "test-results/**",
+      "playwright-report/**",
       "**/next-env.d.ts",
     ],
   },

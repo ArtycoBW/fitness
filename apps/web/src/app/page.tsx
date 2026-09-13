@@ -1,6 +1,6 @@
 import { AccountFilm } from "@/features/landing/account-film";
 import { LandingFaq } from "@/features/landing/faq";
-import { ScrollCue } from "@/features/landing/scroll-cue";
+import { LandingShell } from "@/features/landing/landing-shell";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { publicApi } from "@/lib/public-api";
@@ -16,8 +16,6 @@ import { LandingMotion } from "@/features/landing/motion";
 import { NextSessions } from "@/features/landing/next-sessions";
 import { PublicFooter } from "@/features/landing/footer";
 import { money, visits } from "@/lib/format";
-import "./landing.css";
-import "./landing-refinements.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Страйд — движение в вашем ритме",
@@ -58,7 +56,7 @@ export default async function Home() {
     ],
   ];
   return (
-    <div className="landing">
+    <LandingShell>
       <PublicHeader />
       <main id="main-content" className="landing-main">
         <Hero
@@ -84,11 +82,10 @@ export default async function Home() {
               хочется возвращаться. От первого занятия до привычки, которая
               делает каждый день лучше.
             </p>
-            <Link href="/workouts" className="text-arrow">
+            <Link href="#directions" className="text-arrow">
               Найти своё направление <span>↗</span>
             </Link>
           </div>
-          <ScrollCue target="directions" />
         </section>
         <section id="directions" className="directions-section">
           <div className="section-heading landing-section" data-reveal>
@@ -113,7 +110,6 @@ export default async function Home() {
               <Link href="/workouts">Открыть направления →</Link>
             </div>
           )}
-          <ScrollCue target="spaces" />
         </section>
         <section id="spaces" className="landing-section">
           <div className="section-heading" data-reveal>
@@ -131,7 +127,6 @@ export default async function Home() {
             </p>
           </div>
           <Halls items={halls ?? []} />
-          <ScrollCue target="timetable" />
         </section>
         <section id="timetable" className="schedule-band">
           <div className="landing-section">
@@ -150,25 +145,9 @@ export default async function Home() {
             </div>
             <NextSessions />
           </div>
-          <ScrollCue target="team" />
         </section>
         <section id="team" className="team-section">
-          <div className="landing-section section-heading" data-reveal>
-            <div>
-              <span className="eyebrow">05 / ЛЮДИ РЯДОМ</span>
-              <h2>
-                Внимание к вам.
-                <br />
-                <em>Знание своего дела.</em>
-              </h2>
-            </div>
-            <p>
-              Тренеры, с которыми спокойно пробовать новое и уверенно двигаться
-              дальше.
-            </p>
-          </div>
           <Almanac items={trainers ?? []} />
-          <ScrollCue target="plans" />
         </section>
         <section id="plans" className="landing-section">
           <div className="section-heading" data-reveal>
@@ -225,7 +204,6 @@ export default async function Home() {
               <Link href="/memberships">Попробовать снова →</Link>
             </p>
           )}
-          <ScrollCue target="your-club" />
         </section>
         <section id="your-club" className="account-preview landing-section">
           <div data-reveal>
@@ -246,7 +224,6 @@ export default async function Home() {
           <div className="account-preview-image" data-reveal>
             <AccountFilm />
           </div>
-          <ScrollCue target="faq" />
         </section>
         <section id="faq" className="landing-section faq-section">
           <div data-reveal>
@@ -258,7 +235,6 @@ export default async function Home() {
             </h2>
           </div>
           <LandingFaq items={faq} />
-          <ScrollCue target="contact" />
         </section>
         <section id="contact" className="contact-section">
           <div className="landing-section contact-grid">
@@ -300,10 +276,9 @@ export default async function Home() {
             </div>
             <ContactForm />
           </div>
-          <ScrollCue target="footer" />
         </section>
       </main>
       <PublicFooter />
-    </div>
+    </LandingShell>
   );
 }

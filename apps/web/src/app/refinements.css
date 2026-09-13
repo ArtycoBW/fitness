@@ -309,12 +309,21 @@
 .nav-capsule {
   position: relative;
   border-radius: 100px;
-  background: #fffefcf2;
+  background: #fffefc;
   border: 1px solid #d6dfd2;
-  backdrop-filter: blur(16px);
+  backdrop-filter: none;
   box-shadow: 0 7px 30px -15px #16382333;
   height: 62px;
   overflow: hidden;
+}
+.floating-header .nav-capsule {
+  width: 740px;
+  max-width: calc(100vw - 40px);
+  transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.floating-header .nav-expanded {
+  width: 738px;
+  justify-content: space-between;
 }
 .nav-expanded {
   display: flex;
@@ -346,8 +355,6 @@
   border-radius: 100px;
 }
 .floating-header[data-expanded="false"] .nav-expanded {
-  width: 0;
-  padding: 0;
   opacity: 0;
   pointer-events: none;
 }

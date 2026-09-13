@@ -43,9 +43,15 @@ export function PublicFooter() {
   return (
     <footer ref={root} id="footer" className="landing-footer cinematic-footer">
       <div className="footer-ribbon" aria-hidden="true">
-        <div>
-          {Array.from({ length: 4 }, (_, i) => (
-            <span key={i}>Сила быть собой · Движение в вашем ритме · </span>
+        <div className="footer-marquee-track">
+          {[0, 1].map((group) => (
+            <div className="footer-marquee-group" key={group}>
+              {Array.from({ length: 8 }, (_, i) => (
+                <span key={i}>
+                  {i % 2 ? "Движение в вашем ритме" : "Сила быть собой"}
+                </span>
+              ))}
+            </div>
           ))}
         </div>
       </div>
