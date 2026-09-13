@@ -52,15 +52,28 @@ test("account overlays preserve workspace, filters and card layout", async ({
   await expect(
     modal.getByRole("heading", { name: "Место для движения." }),
   ).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    modal.getByRole("button", { name: /^Оплатить \d/ }),
+  ).toBeInViewport({ ratio: 1 });
+  expect(
+    await modal
+      .locator(".workspace-modal-content")
+      .evaluate((el) => el.scrollHeight <= el.clientHeight + 2),
+  ).toBe(true);
   await modal.getByRole("button", { name: "Альфа Pay", exact: true }).click();
   await modal.getByRole("button", { name: /^Оплатить \d/ }).click();
   await expect(
     modal.getByRole("heading", { name: "Всё получилось." }),
   ).toBeVisible({ timeout: 20000 });
   await expect(page).toHaveURL(/\/account$/);
+  await expect(
+    modal.getByRole("button", { name: "Сохранить подтверждение", exact: true }),
+  ).toBeInViewport({ ratio: 1 });
   await modal.getByRole("link", { name: "Мой абонемент", exact: true }).click();
   await expect(page).toHaveURL(/\/account\/memberships\/[^/]+$/);
   await expect(modal).toHaveCount(0);
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/account");
   await page
     .locator(".sidebar-desktop")

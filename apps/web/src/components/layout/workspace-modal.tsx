@@ -66,7 +66,11 @@ export function WorkspaceModal({
     overlay?.kind === "schedule"
       ? "Расписание клуба"
       : overlay?.kind === "memberships"
-        ? "Выберите абонемент"
+        ? payment
+          ? "Подтверждение оплаты"
+          : order
+            ? "Оплата абонемента"
+            : "Выберите абонемент"
         : "Уведомления";
   return (
     <Dialog

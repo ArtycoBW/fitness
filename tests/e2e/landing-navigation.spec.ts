@@ -3,6 +3,10 @@ import { test, expect } from "@playwright/test";
 test("landing schedule opens in place and keeps hall filters", async ({
   page,
 }) => {
+  await page.route("**/api/v1/public/halls", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    await route.continue();
+  });
   await page.goto("/");
   await page
     .locator("#spaces")

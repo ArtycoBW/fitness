@@ -73,7 +73,10 @@ export function SelectField({
           aria-describedby={props["aria-describedby"]}
           aria-invalid={props["aria-invalid"]}
         >
-          <SelectValue placeholder="Выберите значение" />
+          <SelectValue placeholder="Выберите значение">
+            {options.find((option) => option.value === current)?.label ??
+              "Выберите значение"}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent position="popper">
           {options.map((option, i) => (

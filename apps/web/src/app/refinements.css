@@ -849,6 +849,62 @@
 .workspace-modal .ticket-body {
   padding: 0 24px 20px;
 }
+.workspace-modal .confirmation-ticket header {
+  gap: 0;
+  padding: 16px 20px 12px;
+}
+.workspace-modal .confirmation-ticket .eyebrow {
+  margin: 0;
+}
+.workspace-modal .ticket-amount {
+  padding: 14px 0;
+}
+.workspace-modal .ticket-body .detail-list > div {
+  padding: 9px 0;
+}
+.workspace-modal .ticket-method {
+  margin: 12px 0;
+  padding: 10px;
+}
+.workspace-modal .ticket-barcode {
+  padding: 8px 0 10px;
+}
+.workspace-modal .ticket-barcode svg {
+  height: 60px;
+}
+.workspace-modal .ticket-barcode p {
+  font-size: 10px;
+}
+.workspace-modal .confirmation-ticket footer {
+  padding: 10px;
+  font-size: 10px;
+}
+.workspace-modal .ticket-actions {
+  margin-top: 12px;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+.workspace-modal .ticket-actions > :last-child {
+  grid-column: 1 / -1;
+}
+.workspace-modal .ticket-actions [data-slot="button"] {
+  height: 38px;
+  min-height: 38px;
+  padding: 8px 10px;
+  font-size: 11px;
+}
+@media (min-width: 768px) {
+  .workspace-modal .ticket-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 420px) 180px;
+    max-width: 624px;
+    gap: 24px;
+    align-items: center;
+  }
+  .workspace-modal .ticket-actions {
+    grid-template-columns: 1fr;
+  }
+}
 @media (min-width: 851px) and (max-height: 780px) {
   .workspace-modal[data-slot="dialog-content"] {
     padding: 22px;
@@ -916,6 +972,22 @@
   }
 }
 @media (max-width: 767px) {
+  .workspace-modal .payment-form {
+    padding: 16px;
+  }
+  .workspace-modal .payment-form-heading {
+    margin-bottom: 10px;
+  }
+  .workspace-modal .payment-form .form-stack {
+    gap: 10px;
+  }
+  .workspace-modal .card-option {
+    margin-block: 10px;
+  }
+  .workspace-modal .payment-form [data-slot="input"] {
+    height: 42px;
+    min-height: 42px;
+  }
   .workspace-modal[data-slot="dialog-content"] {
     width: calc(100vw - 16px);
     height: calc(100dvh - 24px);
