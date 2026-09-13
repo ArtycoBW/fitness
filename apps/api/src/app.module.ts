@@ -5,6 +5,7 @@ import { ScheduleModule } from "./modules/schedule/schedule.controller";
 import { PaymentModule } from "./modules/payments/payment.controller";
 import { BookingModule } from "./modules/bookings/booking.controller";
 import { ProgramModule } from "./modules/programs/program.controller";
+import { DashboardModule } from "./modules/dashboard/dashboard.controller";
 import { Controller, Get, Module } from "@nestjs/common";
 import { Db } from "./db";
 import { DatabaseModule } from "./common/database.module";
@@ -31,6 +32,7 @@ class HealthController {
     PaymentModule,
     BookingModule,
     ProgramModule,
+    DashboardModule,
     ScheduleModule,
     CatalogModule,
     MediaModule,

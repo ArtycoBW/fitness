@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { areaPrincipal } from "../../common/area";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { Db } from "../../db";
@@ -93,7 +94,9 @@ export class PaymentService {
     const dto = parse(orderSchema, body);
     if (!staff(auth) && !auth.verified)
       fail("EMAIL_UNVERIFIED", "Подтвердите электронную почту", 403);
-    const clientId = staff(auth) ? dto.clientId : auth.clientId;
+    const clientId = staff(auth)
+      ? (dto.clientId ?? auth.clientId)
+      : auth.clientId;
     if (!clientId) fail("CLIENT_REQUIRED", "Выберите клиента", 400);
     if (!staff(auth) && dto.clientId && dto.clientId !== auth.clientId)
       fail("NOT_FOUND", "Клиент не найден", 404);
@@ -117,6 +120,12 @@ export class PaymentService {
             "CLIENT_UNAVAILABLE",
             "Покупка для этого клиента недоступна",
             409,
+          );
+        if (clientId === auth.clientId && (!auth.verified || !client.phone))
+          fail(
+            "PROFILE_INCOMPLETE",
+            "Подтвердите почту и добавьте телефон в профиле",
+            403,
           );
         const { terms, plan } = await this.plans.snapshot(
           tx,
@@ -337,6 +346,7 @@ export class PaymentService {
     }
   }
   async list(auth: Principal, query: unknown) {
+    auth = areaPrincipal(auth, parse(listQuery, query).area);
     const q = parse(
       listQuery.extend({
         clientId: uuid.optional(),

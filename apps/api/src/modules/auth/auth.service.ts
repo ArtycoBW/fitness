@@ -371,6 +371,28 @@ export class AuthService {
       fail("FORBIDDEN", "Изменение недоступно", 403);
     await this.db.$transaction(async (tx) => {
       await tx.userRole.deleteMany({ where: { userId: id } });
+      if (!dto.roles.includes("TRAINER")) {
+        const trainer = await tx.trainerProfile.findUnique({
+          where: { userId: id },
+        });
+        if (
+          trainer &&
+          ((await tx.programAssignment.count({
+            where: { trainerId: trainer.id, status: "ACTIVE" },
+          })) ||
+            (await tx.scheduledSession.count({
+              where: {
+                trainerId: trainer.id,
+                status: "PUBLISHED",
+                endAt: { gt: new Date() },
+              },
+            })))
+        )
+          fail(
+            "TRAINER_OBLIGATIONS",
+            "Сначала завершите программы и перенесите будущие занятия тренера",
+          );
+      }
       await tx.userRole.createMany({
         data: [...new Set(dto.roles)].map((role) => ({ userId: id, role })),
       });

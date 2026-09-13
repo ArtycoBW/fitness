@@ -30,10 +30,10 @@ export function ProgramList({ area }: { area: Area }) {
     [page, setPage] = useState(1),
     [archived, setArchived] = useState(false);
   const list = useQuery({
-    queryKey: ["programs", q, page, archived],
+    queryKey: ["programs", area, q, page, archived],
     queryFn: () =>
       api<{ items: Program[]; total: number }>(
-        `/programs?q=${encodeURIComponent(q)}&page=${page}&archived=${archived}`,
+        `/programs?area=${area}&q=${encodeURIComponent(q)}&page=${page}&archived=${archived}`,
       ),
   });
   return (

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { api, post } from "@/lib/api";
 import { dateOnly, dateTime } from "@/lib/format";
 import { localDay } from "@/features/schedule/types";
+import { useUrlState } from "@/lib/url-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,13 +37,17 @@ export function AssignmentList({
   area: Area;
   clientId?: string;
 }) {
-  const [status, setStatus] = useState(""),
-    [page, setPage] = useState(1),
+  const { params, set } = useUrlState();
+  clientId = clientId ?? params.get("clientId") ?? undefined;
+  const status = params.get("status") ?? "",
+    setStatus = (v: string) => set("status", v),
+    page = Number(params.get("page")) || 1,
+    setPage = (v: number) => set("page", String(v)),
     list = useQuery({
       queryKey: ["assignments", area, status, page, clientId],
       queryFn: () =>
         api<{ items: Assignment[]; total: number }>(
-          `/program-assignments?page=${page}${status ? "&status=" + status : ""}${clientId ? "&clientId=" + clientId : ""}`,
+          `/program-assignments?area=${area}&page=${page}${status ? "&status=" + status : ""}${clientId ? "&clientId=" + clientId : ""}`,
         ),
     });
   return (

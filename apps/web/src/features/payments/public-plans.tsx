@@ -140,6 +140,15 @@ export function PublicPlans() {
             <p>
               Для продажи клиенту откройте раздел «Оплаты» в рабочем кабинете.
             </p>
+          ) : !user.emailVerifiedAt || !user.client?.phone ? (
+            <div className="form-stack">
+              <p>
+                Для покупки подтвердите почту и добавьте контактный телефон.
+              </p>
+              <Button asChild>
+                <Link href="/account/profile">Открыть профиль</Link>
+              </Button>
+            </div>
           ) : (
             <form
               className="form-stack"

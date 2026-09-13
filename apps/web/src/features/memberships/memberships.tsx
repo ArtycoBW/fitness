@@ -73,12 +73,19 @@ const kinds: Record<string, string> = {
 export function MembershipList({ area }: { area: "account" | "admin" }) {
   const { params, set } = useUrlState(),
     page = Number(params.get("page")) || 1,
-    q = params.get("q") ?? "";
+    q = params.get("q") ?? "",
+    clientId = params.get("clientId") ?? "";
   const { data, error, isLoading } = useQuery({
-    queryKey: ["memberships", area, q, page],
+    queryKey: ["memberships", area, q, page, clientId],
     queryFn: () =>
       api<{ items: Membership[]; total: number }>(
-        "/memberships?" + new URLSearchParams({ q, page: String(page) }),
+        "/memberships?" +
+          new URLSearchParams({
+            q,
+            page: String(page),
+            area,
+            ...(clientId ? { clientId } : {}),
+          }),
       ),
   });
   return (

@@ -407,6 +407,14 @@ export function CatalogPage({ kind }: { kind: Kind }) {
   const q = params.get("q") ?? "",
     page = Math.max(1, Number(params.get("page")) || 1),
     archived = params.get("archived") === "true";
+  const membership = params.get("membership") ?? "",
+    lastVisit = params.get("lastVisit") ?? "",
+    trainerId = params.get("trainerId") ?? "";
+  const trainersFilter = useQuery({
+    queryKey: ["catalog", "trainers", "filter"],
+    queryFn: () => api<{ items: Row[] }>("/catalog/trainers?limit=100"),
+    enabled: kind === "clients",
+  });
   const setQ = (value: string) => set("q", value),
     setPage = (value: number) => set("page", String(value)),
     setArchived = (value: boolean) => set("archived", String(value));
@@ -417,7 +425,11 @@ export function CatalogPage({ kind }: { kind: Kind }) {
     kind === "clients" ||
     user?.roles.some((r) => ["OWNER", "ADMIN"].includes(r));
   const { data, error, isFetching, refetch } = useQuery({
-    queryKey: ["catalog", kind, { q: search, page, archived }],
+    queryKey: [
+      "catalog",
+      kind,
+      { q: search, page, archived, membership, lastVisit, trainerId },
+    ],
     queryFn: ({ signal }) =>
       api<{ items: Row[]; total: number }>(
         "/catalog/" +
@@ -427,6 +439,9 @@ export function CatalogPage({ kind }: { kind: Kind }) {
             q: search,
             page: String(page),
             archived: String(archived),
+            ...(membership ? { membership } : {}),
+            ...(lastVisit ? { lastVisit } : {}),
+            ...(trainerId ? { trainerId } : {}),
           }),
         { signal },
       ),
@@ -526,6 +541,52 @@ export function CatalogPage({ kind }: { kind: Kind }) {
         )}
       </div>
       <div className="table-toolbar">
+        {kind === "clients" && (
+          <>
+            <select
+              className="form-select"
+              aria-label="Абонемент клиента"
+              value={membership}
+              onChange={(e) => {
+                set("membership", e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Все абонементы</option>
+              <option value="current">Действует по сроку</option>
+              <option value="none">Нет действующего</option>
+            </select>
+            <select
+              className="form-select"
+              aria-label="Последнее посещение"
+              value={lastVisit}
+              onChange={(e) => {
+                set("lastVisit", e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Все посещения</option>
+              <option value="recent">Посещали за 30 дней</option>
+              <option value="inactive">Не посещали 30 дней</option>
+            </select>
+            <select
+              className="form-select"
+              aria-label="Тренер клиента"
+              value={trainerId}
+              onChange={(e) => {
+                set("trainerId", e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Все тренеры</option>
+              {trainersFilter.data?.items.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name ?? t.user?.name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
         <div className="search-field">
           <Search size={17} />
           <Input

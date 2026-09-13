@@ -20,6 +20,7 @@ export const reason = z.string().trim().min(3).max(500);
 export const text = z.string().trim().max(5000).default("");
 export const version = z.number().int().positive();
 export const listQuery = z.object({
+  area: z.enum(["admin", "trainer", "account"]).optional(),
   q: z.string().trim().max(100).default(""),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),

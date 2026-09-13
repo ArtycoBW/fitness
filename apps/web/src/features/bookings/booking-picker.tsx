@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -23,15 +24,16 @@ interface Options {
   }[];
 }
 export function BookingPicker({ session: s }: { session: Session }) {
+  const path = usePathname();
   const qc = useQueryClient(),
     { data: user } = useQuery({
       queryKey: ["me"],
       queryFn: () => api<User>("/auth/me"),
       retry: false,
     }),
-    staff = user?.roles.some((r) =>
-      ["OWNER", "ADMIN", "RECEPTION"].includes(r),
-    ),
+    staff =
+      path.startsWith("/admin") &&
+      user?.roles.some((r) => ["OWNER", "ADMIN", "RECEPTION"].includes(r)),
     [clientId, setClient] = useState(""),
     [q, setQ] = useState(""),
     [selected, setSelected] = useState(""),

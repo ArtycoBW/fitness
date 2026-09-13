@@ -92,8 +92,8 @@ export class AuthController {
     res.clearCookie("fitness_csrf", { path: "/" });
     return { message: "Все сессии завершены" };
   }
-  @Get("auth/sessions") sessions(@Req() req: AuthRequest) {
-    return this.db.authSession.findMany({
+  @Get("auth/sessions") async sessions(@Req() req: AuthRequest) {
+    const sessions = await this.db.authSession.findMany({
       where: {
         userId: req.auth.id,
         revokedAt: null,
@@ -102,6 +102,10 @@ export class AuthController {
       select: { id: true, createdAt: true, lastSeenAt: true, expiresAt: true },
       orderBy: { lastSeenAt: "desc" },
     });
+    return sessions.map((s) => ({
+      ...s,
+      current: s.id === req.auth.sessionId,
+    }));
   }
   @Delete("auth/sessions/:id") async revoke(
     @Param("id", ParseUUIDPipe) id: string,

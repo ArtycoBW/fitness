@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { areaPrincipal } from "../../common/area";
 import { z } from "zod";
 import { Db } from "../../db";
 import {
@@ -151,6 +152,7 @@ export class ProgramService {
     return exercises;
   }
   async list(auth: Principal, query: unknown) {
+    auth = areaPrincipal(auth, parse(listQuery, query).area);
     const q = parse(listQuery, query),
       where = {
         ...(admin(auth)
@@ -466,6 +468,7 @@ export class ProgramService {
     );
   }
   async assignments(auth: Principal, query: unknown) {
+    auth = areaPrincipal(auth, parse(listQuery, query).area);
     const q = parse(
       listQuery.extend({
         clientId: uuid.optional(),

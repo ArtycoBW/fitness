@@ -74,6 +74,31 @@ export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
   const periods = item.closures ?? item.absences ?? [];
   return (
     <>
+      {kind === "clients" && (
+        <div className="flex flex-wrap gap-3 mb-5">
+          <Button variant="outline" asChild>
+            <Link href={"/admin/memberships?clientId=" + id}>Абонементы</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={"/admin/payments?clientId=" + id}>Оплаты</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={"/admin/bookings?clientId=" + id + "&upcoming=false"}>
+              История занятий
+            </Link>
+          </Button>
+          {admin && (
+            <Button variant="outline" asChild>
+              <Link href={"/admin/assignments?clientId=" + id}>Программы</Link>
+            </Button>
+          )}
+          <Button asChild>
+            <Link href={"/admin/payments?sale=true&clientId=" + id}>
+              Оформить продажу
+            </Link>
+          </Button>
+        </div>
+      )}
       <Link className="back-link" href={"/admin/" + kind}>
         <ArrowLeft size={15} />К списку
       </Link>

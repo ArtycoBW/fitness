@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -189,6 +190,14 @@ export function AppShell({
               label="Профиль"
               icon={<UserRound size={20} />}
             />
+            {area === "admin" &&
+              user.roles.some((r) => ["OWNER", "ADMIN"].includes(r)) && (
+                <SidebarLink
+                  href="/admin/users"
+                  label="Пользователи"
+                  icon={<ShieldCheck size={20} />}
+                />
+              )}
           </nav>
           <div className="sidebar-bottom">
             <Link href="/" className="sidebar-link">
@@ -203,22 +212,45 @@ export function AppShell({
         </SidebarBody>
         <div className="app-main">
           <header className="app-header">
-            <span>
-              {area === "admin"
-                ? "Управление клубом"
-                : area === "trainer"
-                  ? "Команда клуба"
-                  : "Ваше пространство"}
-            </span>
+            <select
+              className="workspace-switch"
+              aria-label="Рабочее пространство"
+              value={area}
+              onChange={(e) => router.push("/" + e.target.value)}
+            >
+              {user.roles.some((r) =>
+                ["OWNER", "ADMIN", "RECEPTION"].includes(r),
+              ) && <option value="admin">Управление клубом</option>}
+              {user.roles.includes("TRAINER") && (
+                <option value="trainer">Кабинет тренера</option>
+              )}
+              {user.roles.includes("CLIENT") && (
+                <option value="account">Личный кабинет</option>
+              )}
+            </select>
             <div className="user-chip">
               <span>{user.name}</span>
-              <span className="avatar">
-                {user.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .slice(0, 2)
-                  .join("")}
-              </span>
+              <Link
+                href={root + "/profile"}
+                aria-label="Мой профиль"
+                className="avatar"
+              >
+                {user.avatarUrl ? (
+                  <Image
+                    src={user.avatarUrl}
+                    alt=""
+                    width={40}
+                    height={40}
+                    unoptimized
+                  />
+                ) : (
+                  user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")
+                )}
+              </Link>
             </div>
           </header>
           <main className="workspace-main">
@@ -234,6 +266,12 @@ export function AppShell({
                 >
                   Отправить письмо
                 </button>
+              </div>
+            )}
+            {area === "account" && !user.client?.phone && (
+              <div className="notice">
+                Добавьте контактный телефон для покупки абонементов и записи.{" "}
+                <Link href="/account/profile">Открыть профиль</Link>
               </div>
             )}
             {children}

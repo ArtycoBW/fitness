@@ -96,7 +96,11 @@ beforeAll(async () => {
         emailVerifiedAt: new Date(),
         roles: { create: { role: role === "OUTSIDER" ? "CLIENT" : role } },
         ...(role !== "OWNER"
-          ? { client: { create: { name: "Покупатель " + role } } }
+          ? {
+              client: {
+                create: { name: "Покупатель " + role, phone: "+79991234567" },
+              },
+            }
           : {}),
       },
       include: { client: true },

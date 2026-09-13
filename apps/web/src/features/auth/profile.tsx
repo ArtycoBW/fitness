@@ -7,16 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/image-upload";
+import { dateTime } from "@/lib/format";
+import { useRouter } from "next/navigation";
 export function Profile() {
-  const qc = useQueryClient();
-  const { data: user } = useQuery({
+  const qc = useQueryClient(),
+    router = useRouter();
+  const { data: user, error } = useQuery({
     queryKey: ["me"],
     queryFn: () => api<User>("/auth/me"),
   });
-  const { data: sessions } = useQuery({
+  const { data: sessions, error: sessionsError } = useQuery({
     queryKey: ["sessions"],
     queryFn: () =>
-      api<Array<{ id: string; lastSeenAt: string }>>("/auth/sessions"),
+      api<Array<{ id: string; lastSeenAt: string; current: boolean }>>(
+        "/auth/sessions",
+      ),
   });
   const [pending, setPending] = useState(false);
   async function save(event: React.FormEvent<HTMLFormElement>) {
@@ -58,7 +63,8 @@ export function Profile() {
       toast.error((e as Error).message);
     }
   }
-  if (!user) return null;
+  if (error) return <p className="form-error">{error.message}</p>;
+  if (!user) return <p role="status">Загружаем профиль…</p>;
   return (
     <>
       <div className="page-heading">
@@ -132,15 +138,27 @@ export function Profile() {
           </form>
           <h3 className="mt-8 mb-3">Активные сессии</h3>
           <div className="space-y-3">
+            {sessionsError && (
+              <p className="form-error">{sessionsError.message}</p>
+            )}
             {sessions?.map((s) => (
               <div className="session-row" key={s.id}>
-                <span>{new Date(s.lastSeenAt).toLocaleString("ru-RU")}</span>
+                <span>
+                  {dateTime(s.lastSeenAt)}
+                  {s.current ? " · Эта сессия" : ""}
+                </span>
                 <button
                   onClick={() =>
                     void api("/auth/sessions/" + s.id, { method: "DELETE" })
-                      .then(() =>
-                        qc.invalidateQueries({ queryKey: ["sessions"] }),
-                      )
+                      .then(() => {
+                        if (s.current) {
+                          qc.clear();
+                          router.replace("/login");
+                        } else
+                          return qc.invalidateQueries({
+                            queryKey: ["sessions"],
+                          });
+                      })
                       .catch((e) => toast.error(e.message))
                   }
                 >

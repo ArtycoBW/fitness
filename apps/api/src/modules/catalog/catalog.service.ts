@@ -30,12 +30,45 @@ export class CatalogService {
   ) {}
   async list(kindRaw: string, query: unknown) {
     const kind = parse(kindSchema, kindRaw),
-      q = parse(listQuery, query);
+      q = parse(
+        listQuery.extend({
+          trainerId: uuid.optional(),
+          membership: z.enum(["current", "none"]).optional(),
+          lastVisit: z.enum(["recent", "inactive"]).optional(),
+        }),
+        query,
+      );
     const archivedAt = q.archived === "true" ? { not: null } : null;
     const page = { skip: (q.page - 1) * q.limit, take: q.limit };
     if (kind === "clients") {
       const where = {
         archivedAt,
+        ...(q.trainerId
+          ? { trainers: { some: { trainerId: q.trainerId } } }
+          : {}),
+        ...(q.membership
+          ? {
+              memberships: {
+                [q.membership === "current" ? "some" : "none"]: {
+                  cancelledAt: null,
+                  startAt: { lte: new Date() },
+                  endAt: { gt: new Date() },
+                },
+              },
+            }
+          : {}),
+        ...(q.lastVisit
+          ? {
+              bookings: {
+                [q.lastVisit === "recent" ? "some" : "none"]: {
+                  status: "ATTENDED",
+                  session: {
+                    startAt: { gte: new Date(Date.now() - 30 * 86400000) },
+                  },
+                },
+              },
+            }
+          : {}),
         OR: [
           { name: { contains: q.q, mode: "insensitive" as const } },
           { phone: { contains: q.q } },

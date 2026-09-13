@@ -24,12 +24,20 @@ export function PaymentList({ area }: { area: "admin" | "account" }) {
   const { params, set } = useUrlState(),
     q = params.get("q") ?? "",
     page = Number(params.get("page") ?? 1),
-    [selling, setSelling] = useState(false);
+    clientId = params.get("clientId") ?? "",
+    selling = params.get("sale") === "true",
+    setSelling = (v: boolean) => set("sale", v ? "true" : "");
   const { data, error } = useQuery({
-    queryKey: ["payments", q, page],
+    queryKey: ["payments", area, q, page, clientId],
     queryFn: () =>
       api<{ items: Payment[]; total: number }>(
-        "/payments?q=" + encodeURIComponent(q) + "&page=" + page,
+        "/payments?area=" +
+          area +
+          "&q=" +
+          encodeURIComponent(q) +
+          "&page=" +
+          page +
+          (clientId ? "&clientId=" + clientId : ""),
       ),
     refetchInterval: 10000,
   });
@@ -143,14 +151,35 @@ export function PaymentList({ area }: { area: "admin" | "account" }) {
           </div>
         </section>
       )}
-      {selling && <ManualSale onClose={() => setSelling(false)} />}
+      {selling && (
+        <ManualSale
+          clientId={clientId}
+          onClose={() => {
+            setSelling(false);
+            set("sale", "");
+          }}
+        />
+      )}
     </>
   );
 }
-function ManualSale({ onClose }: { onClose: () => void }) {
+function ManualSale({
+  onClose,
+  clientId,
+}: {
+  onClose: () => void;
+  clientId?: string;
+}) {
   const qc = useQueryClient(),
     [key] = useState(() => crypto.randomUUID()),
     [q, setQ] = useState("");
+  const [selectedClient, setSelectedClient] = useState(clientId ?? "");
+  const initialClient = useQuery({
+    queryKey: ["catalog", "clients", clientId],
+    queryFn: () =>
+      api<{ id: string; name: string }>("/catalog/clients/" + clientId),
+    enabled: !!clientId,
+  });
   const { data: clients } = useQuery({
       queryKey: ["sale-clients", q],
       queryFn: () =>
@@ -220,9 +249,17 @@ function ManualSale({ onClose }: { onClose: () => void }) {
             className="form-select"
             id="sale-client"
             name="clientId"
+            value={selectedClient}
+            onChange={(e) => setSelectedClient(e.target.value)}
             required
           >
             <option value="">Выберите клиента</option>
+            {initialClient.data &&
+              !clients?.items.some((c) => c.id === initialClient.data.id) && (
+                <option value={initialClient.data.id}>
+                  {initialClient.data.name}
+                </option>
+              )}
             {clients?.items.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

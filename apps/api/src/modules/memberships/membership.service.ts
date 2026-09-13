@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { areaPrincipal } from "../../common/area";
 import { z } from "zod";
 import { Db } from "../../db";
 import { parse, uuid, listQuery, reason } from "../../common/validation";
@@ -198,6 +199,7 @@ export class MembershipService {
   }
   async list(auth: Principal, query: unknown) {
     const q = parse(listQuery.extend({ clientId: uuid.optional() }), query);
+    auth = areaPrincipal(auth, q.area);
     const staff = auth.roles.some((r) =>
       ["OWNER", "ADMIN", "RECEPTION"].includes(r),
     );

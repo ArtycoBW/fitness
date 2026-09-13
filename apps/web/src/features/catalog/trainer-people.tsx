@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, post } from "@/lib/api";
@@ -30,7 +31,12 @@ export function TrainerPeople() {
             data.map((c) => (
               <div className="detail-list" key={c.id}>
                 <div>
-                  <strong>{c.name}</strong>
+                  <Link
+                    className="table-link"
+                    href={"/trainer/clients/" + c.id}
+                  >
+                    {c.name}
+                  </Link>
                   <span className="muted">
                     {c.status === "ACTIVE" ? "Активен" : "Неактивен"}
                   </span>

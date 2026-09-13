@@ -30,19 +30,32 @@ export function BookingList({
     page = Number(params.get("page") ?? 1),
     status = params.get("status") ?? "",
     upcoming = params.get("upcoming") ?? (sessionId ? "false" : "true"),
-    q = params.get("q") ?? "";
+    q = params.get("q") ?? "",
+    clientId = params.get("clientId") ?? "";
   const { data, error } = useQuery({
-    queryKey: ["bookings", area, page, status, upcoming, q, sessionId],
+    queryKey: [
+      "bookings",
+      area,
+      page,
+      status,
+      upcoming,
+      q,
+      sessionId,
+      clientId,
+    ],
     queryFn: () =>
       api<{ items: Booking[]; total: number }>(
-        "/bookings?page=" +
+        "/bookings?area=" +
+          area +
+          "&page=" +
           page +
           "&q=" +
           encodeURIComponent(q) +
           "&upcoming=" +
           upcoming +
           (status ? "&status=" + status : "") +
-          (sessionId ? "&sessionId=" + sessionId : ""),
+          (sessionId ? "&sessionId=" + sessionId : "") +
+          (clientId ? "&clientId=" + clientId : ""),
       ),
     refetchInterval: 10000,
   });

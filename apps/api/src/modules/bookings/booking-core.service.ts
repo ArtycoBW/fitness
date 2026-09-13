@@ -2,6 +2,7 @@ import { Injectable, Module } from "@nestjs/common";
 import { Db } from "../../db";
 import { fail } from "../../common/business-error";
 import { atomic, audit, type Tx } from "../../common/transaction";
+import { areaPrincipal } from "../../common/area";
 import {
   parse,
   uuid,
@@ -285,6 +286,8 @@ export class BookingCore {
     return updated;
   }
   async book(auth: Principal, body: unknown, key?: string) {
+    if (!parse(bookSchema, body).clientId && auth.roles.includes("CLIENT"))
+      auth = areaPrincipal(auth, "account");
     const dto = parse(bookSchema, body),
       clientId = staff(auth) ? dto.clientId : auth.clientId;
     if (!clientId) fail("CLIENT_REQUIRED", "Выберите клиента", 400);
@@ -405,6 +408,8 @@ export class BookingCore {
     );
   }
   async options(auth: Principal, sessionId: string, clientId?: string) {
+    if (!clientId && auth.roles.includes("CLIENT"))
+      auth = areaPrincipal(auth, "account");
     parse(uuid, sessionId);
     if (clientId) parse(uuid, clientId);
     const target = staff(auth) ? clientId : auth.clientId;
@@ -590,6 +595,7 @@ export class BookingCore {
     );
   }
   async list(auth: Principal, query: unknown) {
+    auth = areaPrincipal(auth, parse(listQuery, query).area);
     const q = parse(
       listQuery.extend({
         clientId: uuid.optional(),

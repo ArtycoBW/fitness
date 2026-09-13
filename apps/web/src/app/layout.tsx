@@ -3,6 +3,7 @@ import { Manrope, Cormorant_Garamond } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 import "./programs.css";
+import "./dashboard.css";
 const sans = Manrope({
   subsets: ["latin", "cyrillic"],
   variable: "--font-manrope",
