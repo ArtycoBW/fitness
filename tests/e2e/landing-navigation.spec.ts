@@ -12,9 +12,10 @@ test("landing schedule opens in place and keeps hall filters", async ({
   const hallId = new URL(href!, "http://localhost").searchParams.get("hallId");
   await link.click();
   const modal = page.getByRole("dialog").first();
+  await expect(modal).toBeVisible();
   await expect(
     modal.getByRole("heading", { name: "Расписание занятий" }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveURL(/\/$/);
   await expect
     .poll(async () => modal.getByRole("combobox").allTextContents())

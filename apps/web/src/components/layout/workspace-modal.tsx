@@ -15,14 +15,16 @@ const loading = () => (
     Открываем раздел…
   </div>
 );
-const Schedule = dynamic(
-  () => import("@/features/schedule/schedule-page").then((m) => m.SchedulePage),
-  { loading },
-);
-const Plans = dynamic(
-  () => import("@/features/payments/public-plans").then((m) => m.PublicPlans),
-  { loading },
-);
+const loadSchedule = () =>
+  import("@/features/schedule/schedule-page").then((m) => m.SchedulePage);
+const loadPlans = () =>
+  import("@/features/payments/public-plans").then((m) => m.PublicPlans);
+const Schedule = dynamic(loadSchedule, { loading });
+const Plans = dynamic(loadPlans, { loading });
+export function preloadWorkspaceOverlay(pathname: string) {
+  if (pathname === "/schedule") void loadSchedule().catch(() => {});
+  if (pathname === "/memberships") void loadPlans().catch(() => {});
+}
 const Notifications = dynamic(
   () =>
     import("@/features/operations/notifications").then((m) => m.Notifications),
