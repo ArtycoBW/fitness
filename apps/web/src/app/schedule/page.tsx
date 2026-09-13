@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <>
       <PublicHeader />
-      <main className="public-content">
+      <main id="main-content" className="public-content">
         <SchedulePage area="public" />
       </main>
     </>

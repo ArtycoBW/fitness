@@ -5,6 +5,7 @@
 @import "./schedule.css";
 @import "./payments.css";
 @import "./bookings.css";
+@import "./public-nav.css";
 @custom-variant dark (&:is(.dark *));
 :root {
   --background: #fffefc;

@@ -45,7 +45,7 @@ export function PublicPlans() {
   return (
     <>
       <PublicHeader />
-      <main className="public-plans">
+      <main id="main-content" className="public-plans">
         <div className="public-plans-heading">
           <span className="eyebrow">НАЧНИТЕ В СВОЁМ ТЕМПЕ</span>
           <h1>

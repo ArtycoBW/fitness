@@ -17,8 +17,16 @@ const display = Cormorant_Garamond({
   display: "swap",
 });
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: "Страйд | Фитнес-клуб",
   description: "Тренировки, расписание и личный кабинет фитнес-клуба",
+  openGraph: {
+    title: "Страйд — движение в вашем ритме",
+    description: "Фитнес-клуб, расписание и персональные программы занятий",
+    locale: "ru_RU",
+    type: "website",
+    images: ["/opengraph-image"],
+  },
 };
 export default function Layout({
   children,
@@ -26,6 +34,9 @@ export default function Layout({
   return (
     <html lang="ru">
       <body className={sans.variable + " " + display.variable}>
+        <noscript>
+          <style>{`.almanac-body,.almanac-foot{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <Providers>{children}</Providers>
       </body>
     </html>
