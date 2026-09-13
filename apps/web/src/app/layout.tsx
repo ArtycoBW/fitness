@@ -5,6 +5,8 @@ import "./globals.css";
 import "./programs.css";
 import "./dashboard.css";
 import "./operations.css";
+import "./refinements.css";
+import "./landing-refinements.css";
 const sans = Manrope({
   subsets: ["latin", "cyrillic"],
   variable: "--font-manrope",

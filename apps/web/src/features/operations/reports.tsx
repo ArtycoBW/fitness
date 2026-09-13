@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, post, type User } from "@/lib/api";
@@ -140,7 +142,7 @@ export function Reports({ area }: { area: "admin" | "trainer" }) {
       <div className="report-filters">
         <label>
           Отчёт
-          <select
+          <SelectField
             className="form-select"
             value={kind}
             onChange={(e) => {
@@ -160,7 +162,7 @@ export function Reports({ area }: { area: "admin" | "trainer" }) {
                   {l}
                 </option>
               ))}
-          </select>
+          </SelectField>
         </label>
         <label>
           С даты
@@ -184,7 +186,7 @@ export function Reports({ area }: { area: "admin" | "trainer" }) {
           <>
             <label>
               Тренер
-              <select
+              <SelectField
                 className="form-select"
                 value={trainerId}
                 onChange={(e) => change("trainerId", e.target.value)}
@@ -195,11 +197,11 @@ export function Reports({ area }: { area: "admin" | "trainer" }) {
                     {t.name}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               Зал
-              <select
+              <SelectField
                 className="form-select"
                 value={hallId}
                 onChange={(e) => change("hallId", e.target.value)}
@@ -210,14 +212,14 @@ export function Reports({ area }: { area: "admin" | "trainer" }) {
                     {h.name}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
           </>
         )}
         {kind === "FINANCE" && (
           <label>
             Способ оплаты
-            <select
+            <SelectField
               className="form-select"
               value={method}
               onChange={(e) => change("method", e.target.value)}
@@ -228,7 +230,7 @@ export function Reports({ area }: { area: "admin" | "trainer" }) {
                   {l}
                 </option>
               ))}
-            </select>
+            </SelectField>
           </label>
         )}
       </div>
@@ -295,7 +297,7 @@ export function Reports({ area }: { area: "admin" | "trainer" }) {
                       <td>
                         {r.href && (
                           <Link className="table-link" href={String(r.href)}>
-                            Открыть →
+                            Открыть{" "}
                           </Link>
                         )}
                       </td>

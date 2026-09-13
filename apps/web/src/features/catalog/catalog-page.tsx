@@ -1,9 +1,12 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { useUrlState, useDebounced } from "@/lib/url-state";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, ArrowUpRight, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { api, post, type User } from "@/lib/api";
@@ -175,7 +178,7 @@ export function FieldInput({
     <div className={"field " + (f.type === "textarea" ? "span-2" : "")}>
       <Label htmlFor={f.key}>{f.label}</Label>
       {f.type === "boolean" ? (
-        <input
+        <Input
           className="check-input"
           type="checkbox"
           name={f.key}
@@ -183,7 +186,7 @@ export function FieldInput({
           defaultChecked={Boolean(initial)}
         />
       ) : f.type === "textarea" ? (
-        <textarea
+        <Textarea
           className="form-textarea"
           name={f.key}
           id={f.key}
@@ -191,7 +194,7 @@ export function FieldInput({
           rows={4}
         />
       ) : f.type === "select" ? (
-        <select
+        <SelectField
           className="form-select"
           name={f.key}
           id={f.key}
@@ -202,7 +205,7 @@ export function FieldInput({
               {l}
             </option>
           ))}
-        </select>
+        </SelectField>
       ) : (
         <Input
           id={f.key}
@@ -343,14 +346,14 @@ export function CatalogEditor({
                 return (
                   <div key={day}>
                     <label>
-                      <input
+                      <Input
                         type="checkbox"
                         name={"day" + day}
                         defaultChecked={!!interval}
                       />
                       {label}
                     </label>
-                    <select
+                    <SelectField
                       aria-label={label + " начало"}
                       name={"start" + day}
                       defaultValue={interval?.start ?? 540}
@@ -361,9 +364,9 @@ export function CatalogEditor({
                           {i % 2 ? "30" : "00"}
                         </option>
                       ))}
-                    </select>
+                    </SelectField>
                     <span>—</span>
-                    <select
+                    <SelectField
                       aria-label={label + " окончание"}
                       name={"end" + day}
                       defaultValue={interval?.end ?? 1260}
@@ -374,7 +377,7 @@ export function CatalogEditor({
                           {(i + 1) % 2 ? "30" : "00"}
                         </option>
                       ))}
-                    </select>
+                    </SelectField>
                   </div>
                 );
               })}
@@ -517,9 +520,7 @@ export function CatalogPage({ kind }: { kind: Kind }) {
             aria-label="Открыть карточку"
             className="table-open"
             href={"/admin/" + kind + "/" + row.original.id}
-          >
-            <ArrowUpRight size={18} />
-          </Link>
+          ></Link>
         ),
       },
     ],
@@ -543,7 +544,7 @@ export function CatalogPage({ kind }: { kind: Kind }) {
       <div className="table-toolbar">
         {kind === "clients" && (
           <>
-            <select
+            <SelectField
               className="form-select"
               aria-label="Абонемент клиента"
               value={membership}
@@ -555,8 +556,8 @@ export function CatalogPage({ kind }: { kind: Kind }) {
               <option value="">Все абонементы</option>
               <option value="current">Действует по сроку</option>
               <option value="none">Нет действующего</option>
-            </select>
-            <select
+            </SelectField>
+            <SelectField
               className="form-select"
               aria-label="Последнее посещение"
               value={lastVisit}
@@ -568,8 +569,8 @@ export function CatalogPage({ kind }: { kind: Kind }) {
               <option value="">Все посещения</option>
               <option value="recent">Посещали за 30 дней</option>
               <option value="inactive">Не посещали 30 дней</option>
-            </select>
-            <select
+            </SelectField>
+            <SelectField
               className="form-select"
               aria-label="Тренер клиента"
               value={trainerId}
@@ -584,7 +585,7 @@ export function CatalogPage({ kind }: { kind: Kind }) {
                   {t.name ?? t.user?.name}
                 </option>
               ))}
-            </select>
+            </SelectField>
           </>
         )}
         <div className="search-field">
@@ -600,7 +601,7 @@ export function CatalogPage({ kind }: { kind: Kind }) {
           />
         </div>
         <label className="inline-check">
-          <input
+          <Input
             type="checkbox"
             checked={archived}
             onChange={(e) => {

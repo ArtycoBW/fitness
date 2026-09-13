@@ -103,7 +103,7 @@ export class AuthService {
       throw e;
     }
     return {
-      message: "Аккаунт создан. Подтвердите адрес по ссылке из письма.",
+      message: "Аккаунт создан. Войдите, чтобы выбрать тренировку.",
     };
   }
   async login(email: string, password: string, ip: string) {

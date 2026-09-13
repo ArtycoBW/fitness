@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -11,7 +12,15 @@ import { PublicHeader } from "@/components/layout/public-header";
 import { ModernPaymentForm } from "@/components/ui/modern-payment-form";
 import { AnimatedTicket } from "@/components/ui/ticket-confirmation-card";
 import { statuses, type Order, type Payment, type Confirmation } from "./types";
-export function Checkout({ id }: { id: string }) {
+export function Checkout({
+  id,
+  embedded = false,
+  onComplete,
+}: {
+  id: string;
+  embedded?: boolean;
+  onComplete?: (id: string) => void;
+}) {
   const router = useRouter(),
     [key] = useState(() => crypto.randomUUID());
   const {
@@ -39,16 +48,18 @@ export function Checkout({ id }: { id: string }) {
     onSuccess: () => void refetch(),
   });
   useEffect(() => {
-    if (payment?.status === "SUCCEEDED")
-      router.replace("/payments/" + payment.id + "/confirmation");
-  }, [payment?.status, payment?.id, router]);
+    if (payment?.status === "SUCCEEDED") {
+      if (onComplete) onComplete(payment.id);
+      else router.replace("/payments/" + payment.id + "/confirmation");
+    }
+  }, [payment?.status, payment?.id, router, onComplete]);
   const pending =
     pay.isPending ||
     (!!payment &&
       ["PROCESSING", "UNKNOWN", "SUCCEEDED"].includes(payment.status));
   return (
     <>
-      <PublicHeader />
+      {!embedded && <PublicHeader />}
       <main className="checkout-page">
         <Link href="/memberships" className="back-link">
           <ArrowLeft size={15} />К абонементам
@@ -156,14 +167,20 @@ export function Checkout({ id }: { id: string }) {
     </>
   );
 }
-export function ConfirmationPage({ id }: { id: string }) {
+export function ConfirmationPage({
+  id,
+  embedded = false,
+}: {
+  id: string;
+  embedded?: boolean;
+}) {
   const { data, error } = useQuery({
     queryKey: ["confirmation", id],
     queryFn: () => api<Confirmation>("/payments/" + id + "/confirmation"),
   });
   return (
     <>
-      <PublicHeader />
+      {!embedded && <PublicHeader />}
       <main className="confirmation-page">
         {error ? (
           <section className="surface">

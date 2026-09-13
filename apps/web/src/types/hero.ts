@@ -1,7 +1,8 @@
 // 📖 Docs: obsidian/frontend/components/common.md
 
 /** Which inline glyph renders next to a piece of hero copy. */
-export type HeroIcon = "focus" | "globe" | "star" | "signal" | "expand" | "play";
+export type HeroIcon =
+  "focus" | "globe" | "star" | "signal" | "expand" | "play";
 
 export interface HeroNavLink {
   label: string;

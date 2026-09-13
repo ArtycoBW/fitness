@@ -1,3 +1,5 @@
+"use client";
+
 // 📖 Docs: obsidian/frontend/components/common.md
 //
 // Hero backdrop with a cursor-driven drag trail.
@@ -46,8 +48,6 @@
 // by a mean of 1.9/255 but by up to 18/255 — on the athletes' orange kit, which
 // is the one thing in frame the eye is actually on. Three cheap primitives is
 // the price of that clamp; they stay.
-
-"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 

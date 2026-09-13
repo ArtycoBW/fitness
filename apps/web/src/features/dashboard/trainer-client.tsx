@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -61,7 +62,7 @@ export function TrainerClient({ id }: { id: string }) {
                 <p className="muted">Программ пока нет.</p>
               )}
               <Link className="table-link" href="/trainer/programs">
-                Назначить из каталога →
+                Назначить из каталога{" "}
               </Link>
             </section>
             <section className="surface">

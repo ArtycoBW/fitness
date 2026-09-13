@@ -42,13 +42,33 @@ test("client books from schedule and cancels with visit release", async ({
   await page.goto("/schedule?date=" + tomorrow + "&view=day");
   await page.locator(".calendar-event").first().click();
   const dialog = page.getByRole("dialog");
+  // Restore this seeded client's reservation if an interrupted earlier run left it open.
+  await expect(
+    dialog
+      .getByText("Запись подтверждена", { exact: true })
+      .or(
+        dialog.getByRole("button", { name: "Подтвердить запись", exact: true }),
+      ),
+  ).toBeVisible();
+  if (await dialog.getByRole("link", { name: "Подробности записи" }).count()) {
+    await dialog.getByRole("link", { name: "Подробности записи" }).click();
+    await page
+      .getByRole("button", { name: "Отменить запись", exact: true })
+      .click();
+    await dialog
+      .getByRole("button", { name: "Подтвердить", exact: true })
+      .click();
+    await expect(dialog).toHaveCount(0);
+    await page.goto("/schedule?date=" + tomorrow + "&view=day");
+    await page.locator(".calendar-event").first().click();
+  }
   await dialog
     .getByRole("button", { name: "Подтвердить запись", exact: true })
     .click();
   await expect(
     dialog.getByText("Запись подтверждена", { exact: true }),
   ).toBeVisible();
-  await dialog.getByRole("link", { name: "Подробности записи →" }).click();
+  await dialog.getByRole("link", { name: "Подробности записи" }).click();
   await page.waitForURL("**/account/bookings/*");
   const bookingUrl = page.url();
   await expect(

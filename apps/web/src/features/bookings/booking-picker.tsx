@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -128,7 +130,7 @@ export function BookingPicker({ session: s }: { session: Session }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-          <select
+          <SelectField
             aria-label="Клиент для записи"
             className="form-select"
             value={clientId}
@@ -144,7 +146,7 @@ export function BookingPicker({ session: s }: { session: Session }) {
                 {c.name}
               </option>
             ))}
-          </select>
+          </SelectField>
         </div>
       )}
       {error && <p className="form-error">{error.message}</p>}
@@ -174,7 +176,7 @@ export function BookingPicker({ session: s }: { session: Session }) {
             className="table-link"
             href={(staff ? "/admin" : "/account") + "/bookings/" + existing.id}
           >
-            Подробности записи →
+            Подробности записи{" "}
           </Link>
         </div>
       ) : options && !options.reason ? (
@@ -190,7 +192,7 @@ export function BookingPicker({ session: s }: { session: Session }) {
                 }
                 key={m.id}
               >
-                <input
+                <Input
                   type="radio"
                   name="booking-membership"
                   disabled={!!m.reason}
@@ -216,7 +218,7 @@ export function BookingPicker({ session: s }: { session: Session }) {
             <div className="notice">
               <p>Для этого занятия нужен подходящий абонемент.</p>
               <Link className="table-link" href="/memberships">
-                Выбрать абонемент →
+                Выбрать абонемент{" "}
               </Link>
             </div>
           )}

@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -94,7 +96,7 @@ export function BookingList({
             }}
           />
         )}
-        <select
+        <SelectField
           className="form-select"
           aria-label="Статус записи"
           value={status}
@@ -109,8 +111,8 @@ export function BookingList({
               {label}
             </option>
           ))}
-        </select>
-        <select
+        </SelectField>
+        <SelectField
           className="form-select"
           aria-label="Период записей"
           value={upcoming}
@@ -121,7 +123,7 @@ export function BookingList({
         >
           <option value="true">Предстоящие</option>
           <option value="false">Вся история</option>
-        </select>
+        </SelectField>
       </div>
       {error ? (
         <p className="form-error">{error.message}</p>
@@ -152,7 +154,7 @@ export function BookingList({
                 </div>
                 <span className="status-pill">{bookingStatuses[b.status]}</span>
                 <Button asChild variant="ghost">
-                  <Link href={"/" + area + "/bookings/" + b.id}>Открыть →</Link>
+                  <Link href={"/" + area + "/bookings/" + b.id}>Открыть </Link>
                 </Button>
               </article>
             ))}
@@ -400,13 +402,13 @@ export function BookingDetail({
           >
             {action === "cancel" && preview?.late && (
               <label className="inline-check">
-                <input name="acceptLoss" type="checkbox" required />
+                <Input name="acceptLoss" type="checkbox" required />
                 Подтверждаю списание одного посещения
               </label>
             )}
             {admin && ["ATTENDED", "NO_SHOW"].includes(action) && (
               <label className="inline-check">
-                <input type="checkbox" name="correction" />
+                <Input type="checkbox" name="correction" />
                 Административное исправление отметки
               </label>
             )}

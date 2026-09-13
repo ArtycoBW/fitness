@@ -1,4 +1,5 @@
 "use client";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -22,7 +23,7 @@ export function ImageUpload({
       <label className="upload-button">
         <ImagePlus size={17} />
         {busy ? "Загружаем…" : "Загрузить фотографию"}
-        <input
+        <Input
           type="file"
           accept="image/png,image/jpeg,image/webp"
           disabled={busy}

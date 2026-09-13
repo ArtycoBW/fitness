@@ -1,29 +1,31 @@
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 // Original Scene Lab composition. All art-direction controls remain in CONFIG.
 export const CONFIG = {
-  paper: "#e1f4df",
+  paper: "#e9e9dd",
   floor: "#d4c5a8",
   wall: "#fffefc",
   ink: "#0f3e17",
   sage: "#b1dbb8",
   glass: "#b6ced5",
-  metal: "#64766a",
+  metal: "#b9c0bf",
   pot: "#b79b7b",
   wood: "#a99474",
   roomWidth: 6,
   roomDepth: 5,
   wallHeight: 2.8,
-  roomGap: 1,
+  roomGap: 22,
   maxDpr: 1.5,
-  cameraX: 9,
-  cameraY: 9,
-  cameraZ: 12,
-  cameraFov: 37,
+  cameraX: 5.4,
+  cameraY: 4.8,
+  cameraZ: 8.8,
+  cameraFov: 42,
   damping: 3.2,
   exposure: 1.1,
-  ambient: 2.2,
-  sun: 3,
-  shadowSize: 1024,
+  ambient: 0.85,
+  sun: 3.8,
+  shadowSize: 2048,
 };
 export function mountHallScene(
   canvas: HTMLCanvasElement,
@@ -41,17 +43,75 @@ export function mountHallScene(
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = CONFIG.exposure;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera(CONFIG.cameraFov, 1, 0.1, 150),
     group = new THREE.Group();
   scene.add(group);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const roomEnvironment = new RoomEnvironment();
+  const environment = pmrem.fromScene(roomEnvironment, 0.04);
+  scene.environment = environment.texture;
+  scene.environmentIntensity = 0.45;
+  roomEnvironment.dispose();
+  pmrem.dispose();
+  const textures: THREE.Texture[] = [];
+  const grain = document.createElement("canvas");
+  grain.width = 512;
+  grain.height = 512;
+  const ctx = grain.getContext("2d")!;
+  ctx.fillStyle = "#c6ad87";
+  ctx.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 900; i++) {
+    const y = (i * 73.31) % 512,
+      bend = Math.sin(i * 1.7) * 3;
+    ctx.strokeStyle = i % 3 ? "rgba(94,61,29,.13)" : "rgba(255,243,210,.22)";
+    ctx.lineWidth = i % 5 ? 0.6 : 1.3;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(130, y + bend, 350, y - bend, 512, y + bend);
+    ctx.stroke();
+  }
+  const woodTexture = new THREE.CanvasTexture(grain);
+  woodTexture.colorSpace = THREE.SRGBColorSpace;
+  woodTexture.wrapS = woodTexture.wrapT = THREE.RepeatWrapping;
+  woodTexture.repeat.set(2, 5);
+  woodTexture.anisotropy = Math.min(
+    8,
+    renderer.capabilities.getMaxAnisotropy(),
+  );
+  textures.push(woodTexture);
   const materials = new Map<string, THREE.MeshStandardMaterial>();
   const material = (color: string) => {
     if (!materials.has(color))
       materials.set(
         color,
-        new THREE.MeshStandardMaterial({ color, roughness: 0.8 }),
+        new THREE.MeshStandardMaterial({
+          color,
+          roughness:
+            color === CONFIG.metal
+              ? 0.23
+              : color === CONFIG.floor || color === CONFIG.wood
+                ? 0.54
+                : 0.86,
+          metalness: color === CONFIG.metal ? 0.88 : 0,
+          ...(color === CONFIG.floor || color === CONFIG.wood
+            ? {
+                map: woodTexture,
+                color: "#eee0ca",
+                bumpMap: woodTexture,
+                bumpScale: 0.012,
+              }
+            : {}),
+          ...(color === CONFIG.glass
+            ? {
+                emissive: "#b9d1cc",
+                emissiveIntensity: 0.32,
+                roughness: 0.16,
+                metalness: 0.28,
+              }
+            : {}),
+        }),
       );
     return materials.get(color)!;
   };
@@ -79,7 +139,15 @@ export function mountHallScene(
     x: number,
     y: number,
     z: number,
-  ) => mesh(p, new THREE.BoxGeometry(w, h, d), c, x, y, z);
+  ) =>
+    mesh(
+      p,
+      new RoundedBoxGeometry(w, h, d, 2, Math.min(w, h, d, 0.1) * 0.12),
+      c,
+      x,
+      y,
+      z,
+    );
   const cyl = (
     p: THREE.Object3D,
     r: number,
@@ -88,7 +156,7 @@ export function mountHallScene(
     x: number,
     y: number,
     z: number,
-  ) => mesh(p, new THREE.CylinderGeometry(r, r, h, 16), c, x, y, z);
+  ) => mesh(p, new THREE.CylinderGeometry(r, r, h, 32), c, x, y, z);
   const ambient = new THREE.HemisphereLight(
     CONFIG.wall,
     CONFIG.sage,
@@ -96,32 +164,34 @@ export function mountHallScene(
   );
   scene.add(ambient);
   const sun = new THREE.DirectionalLight(CONFIG.wall, CONFIG.sun);
-  sun.position.set(-4, 12, 8);
+  sun.position.set(-3, 8, -1);
   sun.castShadow = true;
   sun.shadow.mapSize.set(CONFIG.shadowSize, CONFIG.shadowSize);
-  sun.shadow.camera.left = -30;
-  sun.shadow.camera.right = 30;
-  sun.shadow.camera.top = 15;
-  sun.shadow.camera.bottom = -15;
-  sun.shadow.normalBias = 0.035;
+  sun.shadow.camera.left = -7;
+  sun.shadow.camera.right = 7;
+  sun.shadow.camera.top = 7;
+  sun.shadow.camera.bottom = -7;
+  sun.shadow.normalBias = 0.015;
+  sun.shadow.bias = -0.0002;
+  sun.shadow.radius = 3;
   scene.add(sun);
-  const stage = box(scene, 80, 0.08, 35, CONFIG.paper, 0, -0.35, 0);
+  const stage = box(scene, 160, 0.08, 35, CONFIG.paper, 0, -0.35, 0);
   stage.castShadow = false;
   function plant(parent: THREE.Object3D, x: number, z: number) {
     cyl(parent, 0.24, 0.4, CONFIG.pot, x, 0.28, z);
     cyl(parent, 0.025, 1.4, CONFIG.wood, x, 1, z);
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 13; i++) {
       const a = i * 2.4,
         leaf = mesh(
           parent,
-          new THREE.SphereGeometry(0.35, 8, 6),
-          i % 2 ? CONFIG.sage : CONFIG.ink,
-          x + Math.cos(a) * 0.25,
-          1 + i * 0.1,
-          z + Math.sin(a) * 0.25,
+          new THREE.SphereGeometry(0.35, 20, 12),
+          i % 2 ? "#527346" : "#2f5839",
+          x + Math.cos(a) * 0.28,
+          0.85 + i * 0.07,
+          z + Math.sin(a) * 0.28,
         );
-      leaf.scale.set(0.4, 1.5, 0.8);
-      leaf.rotation.set(Math.sin(a) * 0.6, a, 0.6);
+      leaf.scale.set(0.48, 1, 0.035);
+      leaf.rotation.set(Math.sin(a) * 0.35, a, 0.8);
     }
   }
   function dumbbell(parent: THREE.Object3D, x: number, y: number, z: number) {
@@ -137,6 +207,10 @@ export function mountHallScene(
     r.position.x = i * (CONFIG.roomWidth + CONFIG.roomGap);
     group.add(r);
     box(r, 6, 0.2, 5, CONFIG.floor, 0, -0.1, 0);
+    for (let plank = 0; plank < 6; plank++)
+      box(r, 0.012, 0.006, 5, CONFIG.wood, -2.5 + plank, 0.008, 0);
+    box(r, 5.9, 0.11, 0.06, CONFIG.wood, 0, 0.055, -2.38);
+    box(r, 0.06, 0.11, 4.9, CONFIG.wood, -2.88, 0.055, 0);
     for (let p = 0; p < 17; p++)
       box(r, 0.014, 0.012, 5, CONFIG.wood, -2.85 + p * 0.35, 0.007, 0);
     box(
@@ -186,6 +260,11 @@ export function mountHallScene(
     }
     plant(r, -2.35, -1.7);
     plant(r, 2.35, -1.75);
+    // Wall-mounted storage, folded towels and a low equipment shelf provide scale.
+    for (const x of [-0.45, 0, 0.45]) {
+      box(r, 0.34, 0.06, 0.3, CONFIG.wall, x, 0.81, -2.02);
+      box(r, 0.34, 0.055, 0.3, CONFIG.wall, x, 0.87, -2.02);
+    }
     if (/сил|strength/i.test(room.name)) {
       for (const x of [-1.35, 1.25]) {
         box(r, 0.7, 0.14, 1.8, CONFIG.ink, x, 0.55, 0.35);
@@ -240,6 +319,9 @@ export function mountHallScene(
     camera.position.lerp(desired, k);
     look.lerp(target, k);
     camera.lookAt(look);
+    sun.position.set(look.x - 3, 8, -1);
+    sun.target.position.set(look.x, 0, 0);
+    sun.target.updateMatrixWorld();
     renderer.render(scene, camera);
     if (!ready) {
       ready = true;
@@ -307,6 +389,8 @@ export function mountHallScene(
         if (o instanceof THREE.Mesh) o.geometry.dispose();
       });
       materials.forEach((m) => m.dispose());
+      textures.forEach((texture) => texture.dispose());
+      environment.dispose();
       sun.shadow.dispose();
       renderer.dispose();
       renderer.forceContextLoss();

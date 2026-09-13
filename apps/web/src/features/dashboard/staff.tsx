@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, post, type User } from "@/lib/api";
@@ -91,7 +93,7 @@ export function Staff() {
             setPage(1);
           }}
         />
-        <select
+        <SelectField
           aria-label="Роль пользователя"
           className="form-select"
           value={role}
@@ -106,7 +108,7 @@ export function Staff() {
               {l}
             </option>
           ))}
-        </select>
+        </SelectField>
       </div>
       {list.error ? (
         <p className="form-error">{list.error.message}</p>
@@ -309,7 +311,7 @@ function StaffForm({
           )
           .map(([v, l]) => (
             <label className="flex items-center gap-2" key={v}>
-              <input
+              <Input
                 type="checkbox"
                 name="roles"
                 value={v}

@@ -93,7 +93,7 @@ beforeAll(async () => {
         name: "Платежи " + role,
         email: "pay-" + role + "-" + key + "@example.com",
         passwordHash: "unused",
-        emailVerifiedAt: new Date(),
+        emailVerifiedAt: role === "CLIENT" ? null : new Date(),
         roles: { create: { role: role === "OUTSIDER" ? "CLIENT" : role } },
         ...(role !== "OWNER"
           ? {
@@ -167,7 +167,7 @@ afterAll(async () => {
   await db.$disconnect();
 });
 describe.sequential("Payments, settlement and refunds on PostgreSQL", () => {
-  it("uses server price and prevents purchasing for another client", async () => {
+  it("allows an unverified client to buy at server price and prevents purchasing for another client", async () => {
     expect(
       (
         await call("/orders", "POST", {

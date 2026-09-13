@@ -1,4 +1,6 @@
 "use client";
+
+import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
@@ -78,7 +80,7 @@ export function Notifications() {
       </div>
       <div className="toolbar">
         <label>
-          <input
+          <Input
             type="checkbox"
             checked={unread}
             onChange={(e) => {
@@ -187,8 +189,7 @@ export function NotificationPreferences() {
     <section className="surface mt-6">
       <h2>Уведомления</h2>
       <p className="muted mb-5">
-        Подтверждение адреса, восстановление доступа и приглашения всегда
-        приходят по почте.
+        Восстановление доступа и приглашения всегда приходят по почте.
       </p>
       {q.error ? (
         <p className="form-error">{q.error.message}</p>
@@ -208,7 +209,7 @@ export function NotificationPreferences() {
         >
           {Object.entries(prefLabels).map(([key, label]) => (
             <label className="flex items-start gap-3" key={key}>
-              <input
+              <Input
                 className="mt-1"
                 type="checkbox"
                 name={key}

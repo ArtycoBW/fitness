@@ -1,4 +1,8 @@
 "use client";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+
+import { SelectField } from "@/components/ui/select-field";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -67,7 +71,7 @@ export function AssignmentList({
         )}
       </div>
       <div className="toolbar">
-        <select
+        <SelectField
           className="form-select"
           aria-label="Статус программы"
           value={status}
@@ -82,7 +86,7 @@ export function AssignmentList({
               {l}
             </option>
           ))}
-        </select>
+        </SelectField>
       </div>
       {list.error ? (
         <p className="form-error">{list.error.message}</p>
@@ -105,7 +109,7 @@ export function AssignmentList({
                 </p>
                 <p>{a.programVersion.goal}</p>
                 <div className="program-progress">
-                  <progress
+                  <Progress
                     aria-label="Выполнение программы"
                     max={a.programVersion._count?.days ?? 1}
                     value={a._count?.logs ?? 0}
@@ -116,9 +120,7 @@ export function AssignmentList({
                   </span>
                 </div>
                 <Button asChild variant="outline">
-                  <Link href={`${root(area)}/${a.id}`}>
-                    Открыть программу →
-                  </Link>
+                  <Link href={`${root(area)}/${a.id}`}>Открыть программу </Link>
                 </Button>
               </article>
             ))}
@@ -202,7 +204,7 @@ export function AssignmentDetail({ id, area }: { id: string; area: Area }) {
       </div>
       <div className="surface mb-6">
         <div className="program-progress">
-          <progress
+          <Progress
             aria-label="Выполнение программы"
             max={data.programVersion.days.length}
             value={completed}
@@ -233,12 +235,12 @@ export function AssignmentDetail({ id, area }: { id: string; area: Area }) {
             className="table-link"
             href={`${root(area)}/${data.replacedById}`}
           >
-            Перейти к обновлённой программе →
+            Перейти к обновлённой программе{" "}
           </Link>
         )}
       </div>
       <div className="toolbar">
-        <select
+        <SelectField
           className="form-select"
           aria-label="Неделя программы"
           value={week}
@@ -250,7 +252,7 @@ export function AssignmentDetail({ id, area }: { id: string; area: Area }) {
               Неделя {i + 1}
             </option>
           ))}
-        </select>
+        </SelectField>
       </div>
       <div className="program-days">
         {data.programVersion.days
@@ -515,7 +517,7 @@ function LogForm({
         </fieldset>
       ))}
       <Label htmlFor="log-comment">Самочувствие и заметки</Label>
-      <textarea
+      <Textarea
         className="form-textarea"
         id="log-comment"
         name="comment"
@@ -524,7 +526,7 @@ function LogForm({
         defaultValue={log?.comment ?? ""}
       />
       <label className="flex items-center gap-2">
-        <input
+        <Input
           type="checkbox"
           checked={complete}
           onChange={(e) => setComplete(e.target.checked)}
@@ -582,7 +584,7 @@ function Comments({ data, area }: { data: Assignment; area: Area }) {
         }}
       >
         <Label htmlFor="program-comment">Комментарий</Label>
-        <textarea
+        <Textarea
           id="program-comment"
           name="body"
           className="form-textarea"
@@ -591,14 +593,14 @@ function Comments({ data, area }: { data: Assignment; area: Area }) {
           maxLength={2000}
         />
         {area !== "account" && (
-          <select
+          <SelectField
             className="form-select"
             name="visibility"
             aria-label="Кому виден комментарий"
           >
             <option value="SHARED">Клиенту и тренеру</option>
             <option value="TEAM">Только команде клуба</option>
-          </select>
+          </SelectField>
         )}
         {save.error && <p className="form-error">{save.error.message}</p>}
         <Button disabled={save.isPending}>Отправить комментарий</Button>
@@ -642,7 +644,7 @@ function ReplaceForm({
       }}
     >
       <Label htmlFor="replace-version">Опубликованная версия</Label>
-      <select
+      <SelectField
         className="form-select"
         id="replace-version"
         name="programVersionId"
@@ -657,7 +659,7 @@ function ReplaceForm({
               Версия {v.number} · {v.title}
             </option>
           ))}
-      </select>
+      </SelectField>
       <Label htmlFor="replace-start">Дата начала</Label>
       <Input
         id="replace-start"

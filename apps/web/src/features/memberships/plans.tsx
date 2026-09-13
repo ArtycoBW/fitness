@@ -1,7 +1,10 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+
+import { SelectField } from "@/components/ui/select-field";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, ArrowUpRight, Check } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { toast } from "sonner";
 import { api, post, type User } from "@/lib/api";
 import { money, visits } from "@/lib/format";
@@ -142,7 +145,7 @@ export function PlanEditor({
             </div>
             <div className="field span-2">
               <Label htmlFor="description">Описание</Label>
-              <textarea
+              <Textarea
                 className="form-textarea"
                 id="description"
                 name="description"
@@ -185,7 +188,7 @@ export function PlanEditor({
                 defaultValue={v?.visitLimit ?? 8}
               />
               <label className="inline-check">
-                <input
+                <Input
                   type="checkbox"
                   checked={unlimited}
                   onChange={(e) => setUnlimited(e.target.checked)}
@@ -218,7 +221,7 @@ export function PlanEditor({
               />
             </div>
             <label className="inline-check">
-              <input
+              <Input
                 type="checkbox"
                 name="published"
                 defaultChecked={plan?.published ?? true}
@@ -231,7 +234,7 @@ export function PlanEditor({
             <div className="button-row">
               {[1, 2, 3, 4, 5, 6, 0].map((day) => (
                 <label key={day} className="inline-check">
-                  <input
+                  <Input
                     type="checkbox"
                     name="weekdays"
                     value={day}
@@ -248,7 +251,7 @@ export function PlanEditor({
               ].map(([key, label, initial]) => (
                 <div className="field" key={key}>
                   <Label htmlFor={String(key)}>{label}</Label>
-                  <select
+                  <SelectField
                     className="form-select"
                     id={String(key)}
                     name={String(key)}
@@ -260,7 +263,7 @@ export function PlanEditor({
                         {i % 2 ? "30" : "00"}
                       </option>
                     ))}
-                  </select>
+                  </SelectField>
                 </div>
               ))}
             </div>
@@ -282,7 +285,7 @@ export function PlanEditor({
               <div className="option-grid">
                 {resources?.[kind]?.map((item) => (
                   <label className="inline-check" key={item.id}>
-                    <input
+                    <Input
                       name={kind}
                       value={item.id}
                       type="checkbox"
@@ -397,7 +400,6 @@ export function Plans() {
                   {!plan.archivedAt && (
                     <Button variant="outline" onClick={() => setEditing(plan)}>
                       Изменить условия
-                      <ArrowUpRight size={16} />
                     </Button>
                   )}
                   <Button variant="ghost" onClick={() => setArchiving(plan)}>

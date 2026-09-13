@@ -1,8 +1,10 @@
 "use client";
+import { Progress } from "@/components/ui/progress";
+
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, ArrowUpRight, Users, Dumbbell } from "lucide-react";
+import { CalendarDays, Users, Dumbbell } from "lucide-react";
 import { api, type User } from "@/lib/api";
 import { dateOnly, dateTime, money } from "@/lib/format";
 import { localDay, addDays } from "@/features/schedule/types";
@@ -118,7 +120,7 @@ export function Overview({ area }: { area: Area }) {
             <div className="heading-actions">
               <h2>Сегодня в расписании</h2>
               <Link className="table-link" href={root + "/schedule"}>
-                Весь календарь →
+                Весь календарь{" "}
               </Link>
             </div>
             {data.data.sessions?.length ? (
@@ -185,10 +187,7 @@ function Stat({
 }) {
   return (
     <Link href={href} className="surface overview-stat">
-      <div>
-        {icon}
-        <ArrowUpRight size={16} />
-      </div>
+      <div>{icon}</div>
       <strong>{value}</strong>
       <span>{label}</span>
     </Link>
@@ -201,7 +200,7 @@ function ClientOverview({ data }: { data: Dashboard }) {
         <div className="heading-actions">
           <h2>Ближайшие занятия</h2>
           <Link className="table-link" href="/account/bookings">
-            Мои записи →
+            Мои записи{" "}
           </Link>
         </div>
         {data.bookings?.length ? (
@@ -236,11 +235,11 @@ function ClientOverview({ data }: { data: Dashboard }) {
           <div className="heading-actions">
             <h2>Ваши абонементы</h2>
             <Link className="table-link" href="/account/memberships">
-              Все →
+              Все{" "}
             </Link>
           </div>
           {data.memberships?.length ? (
-            data.memberships.map((m) => (
+            data.memberships.slice(0, 2).map((m) => (
               <Link
                 className="overview-membership"
                 href={"/account/memberships/" + m.id}
@@ -274,7 +273,7 @@ function ClientOverview({ data }: { data: Dashboard }) {
               >
                 <strong>{p.programVersion.title}</strong>
                 <div className="program-progress">
-                  <progress
+                  <Progress
                     aria-label="Выполнение программы"
                     max={p.programVersion._count.days}
                     value={p._count.logs}
@@ -289,7 +288,7 @@ function ClientOverview({ data }: { data: Dashboard }) {
             <p>Тренер поможет составить персональный план.</p>
           )}
           <Link className="table-link" href="/account/programs">
-            Мои программы →
+            Мои программы{" "}
           </Link>
         </section>
       </div>
@@ -320,7 +319,7 @@ function FinanceOverview() {
           className="table-link"
           href={`/admin/reports?kind=FINANCE&from=${from}&to=${today}`}
         >
-          Подробный отчёт →
+          Подробный отчёт{" "}
         </Link>
       </div>
       {q.error ? (
@@ -392,8 +391,7 @@ function ReceptionSearch() {
       ))}
       {search.length >= 2 && clients.data && !clients.data.items.length && (
         <p className="muted mt-4">
-          Клиент не найден.{" "}
-          <Link href="/admin/clients">Создать карточку →</Link>
+          Клиент не найден. <Link href="/admin/clients">Создать карточку </Link>
         </p>
       )}
     </section>

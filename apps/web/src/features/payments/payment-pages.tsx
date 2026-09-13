@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -245,7 +247,7 @@ function ManualSale({
             placeholder="Имя клиента"
           />
           <Label htmlFor="sale-client">Клиент</Label>
-          <select
+          <SelectField
             className="form-select"
             id="sale-client"
             name="clientId"
@@ -265,9 +267,9 @@ function ManualSale({
                 {c.name}
               </option>
             ))}
-          </select>
+          </SelectField>
           <Label htmlFor="sale-plan">Абонемент</Label>
-          <select
+          <SelectField
             className="form-select"
             id="sale-plan"
             name="planVersionId"
@@ -281,7 +283,7 @@ function ManualSale({
                   {p.name} · {money(p.versions[0]?.priceMinor ?? 0)}
                 </option>
               ))}
-          </select>
+          </SelectField>
           <Label htmlFor="sale-date">Дата активации</Label>
           <Input
             type="date"
@@ -291,10 +293,10 @@ function ManualSale({
             defaultValue={localDay()}
           />
           <Label htmlFor="sale-method">Способ оплаты</Label>
-          <select className="form-select" name="method" id="sale-method">
+          <SelectField className="form-select" name="method" id="sale-method">
             <option value="CASH">Наличные</option>
             <option value="TERMINAL">Терминал</option>
-          </select>
+          </SelectField>
           <Label htmlFor="sale-reason">Основание регистрации</Label>
           <Input
             name="reason"
@@ -523,10 +525,10 @@ function RefundDialog({
             }
           />
           <Label htmlFor="refund-action">После частичного возврата</Label>
-          <select name="action" id="refund-action" className="form-select">
+          <SelectField name="action" id="refund-action" className="form-select">
             <option value="KEEP">Сохранить абонемент</option>
             <option value="CANCEL">Прекратить абонемент</option>
-          </select>
+          </SelectField>
           <Label htmlFor="refund-reason">Причина</Label>
           <Input name="reason" id="refund-reason" required minLength={3} />
           {preview && (

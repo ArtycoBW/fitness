@@ -1,3 +1,4 @@
+import { selectOption } from "./controls";
 import { test, expect } from "@playwright/test";
 test("reception sale and full refund retain operation history", async ({
   page,
@@ -16,17 +17,16 @@ test("reception sale and full refund retain operation history", async ({
   await page.goto("/admin/payments");
   await page.getByRole("button", { name: "Оформить продажу" }).click();
   const dialog = page.getByRole("dialog");
-  await dialog
-    .getByLabel("Клиент", { exact: true })
-    .selectOption({ label: "Александра Морозова" });
-  const options = await dialog
-    .getByLabel("Абонемент", { exact: true })
-    .locator("option")
-    .allTextContents();
-  await dialog
-    .getByLabel("Абонемент", { exact: true })
-    .selectOption({ label: options.find((s) => s.includes("Первый шаг"))! });
-  await dialog.getByLabel("Способ оплаты").selectOption("TERMINAL");
+  await selectOption(dialog.getByLabel("Клиент", { exact: true }), {
+    label: "Александра Морозова",
+  });
+  await dialog.getByLabel("Абонемент", { exact: true }).click();
+  const options = await page.getByRole("option").allTextContents();
+  await page.keyboard.press("Escape");
+  await selectOption(dialog.getByLabel("Абонемент", { exact: true }), {
+    label: options.find((s) => s.includes("Первый шаг"))!,
+  });
+  await selectOption(dialog.getByLabel("Способ оплаты"), "TERMINAL");
   await dialog
     .getByLabel("Основание регистрации")
     .fill("Оплата получена на рецепции");

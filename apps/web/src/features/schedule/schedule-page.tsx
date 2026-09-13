@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -185,18 +187,20 @@ export function SchedulePage({
           />
         </div>
         <div className="segmented">
-          <button
+          <Button
+            variant="ghost"
             className={view === "week" ? "is-active" : ""}
             onClick={() => set("view", "week")}
           >
             Неделя
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             className={view === "day" ? "is-active" : ""}
             onClick={() => set("view", "day")}
           >
             День
-          </button>
+          </Button>
         </div>
       </div>
       <div className="schedule-filters">
@@ -207,7 +211,7 @@ export function SchedulePage({
         ]
           .filter(([, name]) => area !== "trainer" || name !== "trainerId")
           .map(([kind, name, label]) => (
-            <select
+            <SelectField
               className="form-select"
               key={name}
               aria-label={label}
@@ -220,9 +224,9 @@ export function SchedulePage({
                   {r.name}
                 </option>
               ))}
-            </select>
+            </SelectField>
           ))}
-        <select
+        <SelectField
           aria-label="Уровень подготовки"
           className="form-select"
           value={params.get("level") ?? ""}
@@ -233,9 +237,9 @@ export function SchedulePage({
           <option value="BEGINNER">Начальный</option>
           <option value="INTERMEDIATE">Средний</option>
           <option value="ADVANCED">Продвинутый</option>
-        </select>
+        </SelectField>
         <label className="inline-check">
-          <input
+          <Input
             type="checkbox"
             checked={params.get("available") === "true"}
             onChange={(e) => set("available", e.target.checked ? "true" : "")}
@@ -281,7 +285,8 @@ export function SchedulePage({
                   <h2>{dateOnly(day + "T12:00:00Z")}</h2>
                   {rows.length ? (
                     rows.map((s) => (
-                      <button
+                      <Button
+                        variant="ghost"
                         className="agenda-row"
                         key={s.id}
                         onClick={() => open(s)}
@@ -302,7 +307,7 @@ export function SchedulePage({
                           </span>
                         </span>
                         <ChevronRight size={16} />
-                      </button>
+                      </Button>
                     ))
                   ) : (
                     <p className="muted">Занятий нет</p>
@@ -408,14 +413,14 @@ export function SchedulePage({
                   }}
                 >
                   <Label htmlFor="scope">Отменить</Label>
-                  <select className="form-select" id="scope" name="scope">
+                  <SelectField className="form-select" id="scope" name="scope">
                     <option value="ONE">Только это занятие</option>
                     {session.seriesId && (
                       <option value="FUTURE">
                         Это и будущие занятия серии
                       </option>
                     )}
-                  </select>
+                  </SelectField>
                   <Label htmlFor="reason">Причина отмены</Label>
                   <Input id="reason" name="reason" required minLength={3} />
                   {(cancel.error || checkCancel.error) && (

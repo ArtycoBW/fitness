@@ -1,3 +1,4 @@
+import { selectOption } from "./controls";
 import { test, expect, type Page } from "@playwright/test";
 test("trainer publishes and assigns a program, client records results, trainer reviews history", async ({
   page,
@@ -27,9 +28,10 @@ test("trainer publishes and assigns a program, client records results, trainer r
   await page
     .getByLabel("Цель", { exact: true })
     .fill("Контроль движения и спокойный темп");
-  await page
-    .getByLabel("Добавить упражнение в занятие 1", { exact: true })
-    .selectOption({ label: "Ягодичный мост" });
+  await selectOption(
+    page.getByLabel("Добавить упражнение в занятие 1", { exact: true }),
+    { label: "Ягодичный мост" },
+  );
   await page.getByLabel("Подходы", { exact: true }).fill("1");
   await page
     .getByRole("button", { name: "Сохранить черновик", exact: true })
@@ -42,9 +44,9 @@ test("trainer publishes and assigns a program, client records results, trainer r
   await page
     .getByRole("button", { name: "Назначить клиенту", exact: true })
     .click();
-  await page
-    .getByLabel("Клиент", { exact: true })
-    .selectOption({ label: "Александра Морозова" });
+  await selectOption(page.getByLabel("Клиент", { exact: true }), {
+    label: "Александра Морозова",
+  });
   await page
     .getByRole("button", { name: "Назначить программу", exact: true })
     .click();

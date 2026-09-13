@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { PublicItem } from "./types";
@@ -114,14 +116,15 @@ export function Halls({ items }: { items: PublicItem[] }) {
       <div className="hall-details">
         <div className="hall-tabs" role="group" aria-label="Выбор зала">
           {items.map((h, i) => (
-            <button
+            <Button
+              variant="ghost"
               key={h.id}
               type="button"
               aria-pressed={i === active}
               onClick={() => setActive(i)}
             >
               {String(i + 1).padStart(2, "0")}. {h.name}
-            </button>
+            </Button>
           ))}
         </div>
         <div aria-live="polite">
@@ -139,10 +142,10 @@ export function Halls({ items }: { items: PublicItem[] }) {
           </dl>
         </div>
         <Link className="landing-button" href={"/schedule?hallId=" + item.id}>
-          Расписание зала <span>↗</span>
+          Расписание зала <span> </span>
         </Link>
         <Link className="table-link mt-5" href={"/halls/" + item.slug}>
-          Подробнее о пространстве →
+          Подробнее о пространстве{" "}
         </Link>
       </div>
     </div>

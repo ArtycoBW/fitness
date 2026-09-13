@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+
 import { type Session, minutes, time, localDay } from "./types";
 export function Calendar({
   days,
@@ -109,7 +111,8 @@ export function Calendar({
               }}
             >
               {placements.map(({ s, lane }) => (
-                <button
+                <Button
+                  variant="ghost"
                   key={s.id}
                   className={"calendar-event event-" + s.status.toLowerCase()}
                   style={{
@@ -148,7 +151,7 @@ export function Calendar({
                   <span>
                     {s.hall.name} · {s.freePlaces} мест
                   </span>
-                </button>
+                </Button>
               ))}
             </div>
           );

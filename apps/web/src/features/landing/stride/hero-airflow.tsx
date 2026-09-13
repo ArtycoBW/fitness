@@ -1,3 +1,5 @@
+"use client";
+
 // 📖 Docs: obsidian/frontend/components/common.md
 //
 // Airflow streamlines over the hero — thin curved lines that make moving air
@@ -26,8 +28,6 @@
 // changes, and `globalAlpha` multiplies straight through a gradient, so the
 // stops are authored at full alpha and the envelope is applied there instead.
 // Same pixels, one allocation per line instead of one per line per frame.
-
-"use client";
 
 import { useCallback, useEffect, useRef } from "react";
 

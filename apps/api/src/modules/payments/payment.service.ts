@@ -93,8 +93,6 @@ export class PaymentService {
   }
   async createOrder(auth: Principal, body: unknown, key?: string) {
     const dto = parse(orderSchema, body);
-    if (!staff(auth) && !auth.verified)
-      fail("EMAIL_UNVERIFIED", "Подтвердите электронную почту", 403);
     const clientId = staff(auth)
       ? (dto.clientId ?? auth.clientId)
       : auth.clientId;
@@ -122,12 +120,8 @@ export class PaymentService {
             "Покупка для этого клиента недоступна",
             409,
           );
-        if (clientId === auth.clientId && (!auth.verified || !client.phone))
-          fail(
-            "PROFILE_INCOMPLETE",
-            "Подтвердите почту и добавьте телефон в профиле",
-            403,
-          );
+        if (clientId === auth.clientId && !client.phone)
+          fail("PROFILE_INCOMPLETE", "Добавьте телефон в профиле", 403);
         const { terms, plan } = await this.plans.snapshot(
           tx,
           dto.planVersionId,
@@ -210,8 +204,6 @@ export class PaymentService {
       async (tx) => {
         const order = await this.lockOrder(tx, id);
         this.scope(auth, order.clientId);
-        if (!manual && !staff(auth) && !auth.verified)
-          fail("EMAIL_UNVERIFIED", "Подтвердите электронную почту", 403);
         const active = await tx.paymentAttempt.findFirst({
           where: { orderId: id, status: { in: pending } },
         });

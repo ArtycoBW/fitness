@@ -27,9 +27,9 @@ for (const [role, email, area] of cases)
         await page.getByLabel("Быстрый поиск клиента").fill("Александра");
         await page.getByRole("link", { name: "Продажа", exact: true }).click();
         await expect(page.getByRole("dialog")).toBeVisible();
-        await expect(
-          page.getByLabel("Клиент", { exact: true }).locator("option:checked"),
-        ).toHaveText("Александра Морозова");
+        await expect(page.getByLabel("Клиент", { exact: true })).toHaveText(
+          "Александра Морозова",
+        );
         await page.keyboard.press("Escape");
         if (role === "OWNER") {
           await page.goto("/admin/users");
@@ -40,9 +40,11 @@ for (const [role, email, area] of cases)
             page.getByRole("cell", { name: /Анна Соколова/ }),
           ).toBeVisible();
           await page.goto("/admin/programs/new");
+          await page.getByLabel("Тренер — автор").click();
           await expect(
-            page.getByLabel("Тренер — автор").locator("option"),
-          ).not.toHaveCount(1);
+            page.getByRole("option", { name: "Анна Соколова", exact: true }),
+          ).toBeVisible();
+          await page.keyboard.press("Escape");
         }
       }
       if (area === "trainer") {

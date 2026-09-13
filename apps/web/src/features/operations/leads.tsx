@@ -1,4 +1,7 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -56,7 +59,7 @@ export function Leads() {
             set("page", "1");
           }}
         />
-        <select
+        <SelectField
           className="form-select"
           aria-label="Статус обращения"
           value={status}
@@ -71,7 +74,7 @@ export function Leads() {
               {l}
             </option>
           ))}
-        </select>
+        </SelectField>
       </div>
       {list.error ? (
         <p className="form-error">{list.error.message}</p>
@@ -195,7 +198,7 @@ export function LeadDetail({ id }: { id: string }) {
                 }}
               >
                 <Label htmlFor="lead-status">Статус</Label>
-                <select
+                <SelectField
                   id="lead-status"
                   name="status"
                   className="form-select"
@@ -206,9 +209,9 @@ export function LeadDetail({ id }: { id: string }) {
                       {l}
                     </option>
                   ))}
-                </select>
+                </SelectField>
                 <Label htmlFor="lead-assignee">Ответственный</Label>
-                <select
+                <SelectField
                   id="lead-assignee"
                   name="assignedTo"
                   className="form-select"
@@ -220,9 +223,9 @@ export function LeadDetail({ id }: { id: string }) {
                       {s.name}
                     </option>
                   ))}
-                </select>
+                </SelectField>
                 <Label htmlFor="lead-note">Результат контакта</Label>
-                <textarea
+                <Textarea
                   id="lead-note"
                   name="note"
                   className="form-textarea"

@@ -112,7 +112,7 @@ export async function Catalog({
                     item.id
                   }
                 >
-                  Выбрать тренировку ↗
+                  Выбрать тренировку{" "}
                 </Link>
               </div>
             </div>
@@ -123,7 +123,7 @@ export async function Catalog({
                 нужна помощь с выбором, оставьте обращение — мы свяжемся с вами.
               </p>
               <Link className="table-link" href="/#contact">
-                Познакомиться с клубом →
+                Познакомиться с клубом{" "}
               </Link>
             </section>
           </>
@@ -146,7 +146,7 @@ export async function Catalog({
                 </h2>
                 <p>{i.description ?? i.bio}</p>
                 <Link className="text-arrow" href={`/${kind}/${i.slug}`}>
-                  Подробнее <span>↗</span>
+                  Подробнее <span> </span>
                 </Link>
               </article>
             ))}

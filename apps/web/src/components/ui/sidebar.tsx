@@ -1,4 +1,5 @@
 "use client";
+import { Brand } from "@/components/brand";
 import {
   createContext,
   useContext,
@@ -7,7 +8,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, useReducedMotion } from "motion/react";
+import { Button } from "./button";
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   Sheet,
@@ -77,11 +78,12 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
 }
 export function SidebarBody({ children }: { children: React.ReactNode }) {
   const { open, setOpen, mobile, setMobile, pinned, setPinned } = useSidebar();
-  const reduce = useReducedMotion();
+
   return (
     <>
-      <motion.aside
+      <aside
         className="sidebar-desktop"
+        data-expanded={open}
         onMouseEnter={() => {
           if (!pinned) setOpen(true);
         }}
@@ -91,15 +93,15 @@ export function SidebarBody({ children }: { children: React.ReactNode }) {
         onFocusCapture={() => {
           if (!pinned) setOpen(true);
         }}
-        onBlurCapture={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget))
+            setOpen(false);
         }}
-        animate={{ width: open ? 256 : 76 }}
-        transition={{ duration: reduce ? 0 : 0.2, ease: [0.2, 0, 0, 1] }}
       >
         <div className="sidebar-inner">
           {children}
-          <button
+          <Button
+            variant="ghost"
             className="sidebar-toggle"
             onClick={() => setPinned(!pinned)}
             aria-label={pinned ? "Открепить меню" : "Закрепить меню"}
@@ -109,9 +111,9 @@ export function SidebarBody({ children }: { children: React.ReactNode }) {
             <span className={cn(!open && "sr-only")}>
               {pinned ? "Открепить меню" : "Закрепить меню"}
             </span>
-          </button>
+          </Button>
         </div>
-      </motion.aside>
+      </aside>
       <div className="sidebar-mobile">
         <Sheet open={mobile} onOpenChange={setMobile}>
           <SheetTrigger className="icon-button" aria-label="Открыть меню">
@@ -119,11 +121,13 @@ export function SidebarBody({ children }: { children: React.ReactNode }) {
           </SheetTrigger>
           <SheetContent side="left" className="w-72 bg-background p-5">
             <SheetTitle className="sr-only">Меню клуба</SheetTitle>
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+              {children}
+            </div>
           </SheetContent>
         </Sheet>
         <Link href="/" className="brand">
-          страйд<span>клуб движения</span>
+          <Brand />
         </Link>
       </div>
     </>
@@ -144,7 +148,7 @@ export function SidebarLink({
     path === href ||
     (href.split("/").length > 2 && path.startsWith(href + "/"));
   return (
-    <Tooltip>
+    <Tooltip delayDuration={450}>
       <TooltipTrigger asChild>
         <Link
           href={href}
@@ -159,7 +163,11 @@ export function SidebarLink({
           </span>
         </Link>
       </TooltipTrigger>
-      {!open && <TooltipContent side="right">{label}</TooltipContent>}
+      {!open && (
+        <TooltipContent side="right" sideOffset={12}>
+          {label}
+        </TooltipContent>
+      )}
     </Tooltip>
   );
 }

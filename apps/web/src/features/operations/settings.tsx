@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, post } from "@/lib/api";
 import { dateTime } from "@/lib/format";
@@ -295,7 +297,7 @@ export function Deliveries() {
         <p>Состояние очереди и повторная доставка после устранения ошибки.</p>
       </div>
       <div className="toolbar">
-        <select
+        <SelectField
           className="form-select"
           aria-label="Статус доставки"
           value={status}
@@ -310,7 +312,7 @@ export function Deliveries() {
               {l}
             </option>
           ))}
-        </select>
+        </SelectField>
       </div>
       {q.error ? (
         <p className="form-error">{q.error.message}</p>

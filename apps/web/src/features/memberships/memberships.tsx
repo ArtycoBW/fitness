@@ -1,8 +1,9 @@
 "use client";
+
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Snowflake, ArrowUpRight, ArrowLeft, Clock3 } from "lucide-react";
+import { Snowflake, ArrowLeft, Clock3 } from "lucide-react";
 import { toast } from "sonner";
 import { api, post, type User } from "@/lib/api";
 import { dateOnly, dateTime, money } from "@/lib/format";
@@ -100,10 +101,7 @@ export function MembershipList({ area }: { area: "account" | "admin" }) {
         </div>
         {area === "account" && (
           <Button asChild>
-            <Link href="/memberships">
-              Выбрать абонемент
-              <ArrowUpRight size={17} />
-            </Link>
+            <Link href="/memberships">Выбрать абонемент</Link>
           </Button>
         )}
       </div>
@@ -132,7 +130,6 @@ export function MembershipList({ area }: { area: "account" | "admin" }) {
             >
               <div className="heading-actions">
                 <span className="status-pill">{statuses[m.status]}</span>
-                <ArrowUpRight size={20} />
               </div>
               <h2>{m.termsSnapshot.title}</h2>
               {area === "admin" && <p className="muted">{m.client.name}</p>}

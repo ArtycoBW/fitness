@@ -1,7 +1,16 @@
+"use client";
 import * as React from "react";
+import { CheckboxField } from "./checkbox-field";
+import { DateField } from "./date-field";
+import { TimeField } from "./time-field";
 import { cn } from "@/lib/utils";
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  if (type === "checkbox")
+    return <CheckboxField className={className} {...props} />;
+  if (type === "date") return <DateField className={className} {...props} />;
+  if (type === "time" || type === "datetime-local")
+    return <TimeField type={type} className={className} {...props} />;
   return (
     <input
       type={type}

@@ -30,7 +30,9 @@ test("public landing catalogs, motion controls and contact submission", async ({
     .click();
   await expect(page).toHaveURL(/\/workouts\//);
   await expect(
-    page.getByRole("link", { name: "Выбрать тренировку" }),
+    page
+      .locator("#main-content")
+      .getByRole("link", { name: "Выбрать тренировку" }),
   ).toBeVisible();
   await page.goto("/");
   await page.locator("#spaces").scrollIntoViewIfNeeded();
@@ -46,11 +48,10 @@ test("public landing catalogs, motion controls and contact submission", async ({
     bg: getComputedStyle(el).backgroundColor,
   }));
   expect(color.fg).not.toBe(color.bg);
-  await page.locator("#faq summary").first().click();
-  await expect(page.locator("#faq details").first()).toHaveAttribute(
-    "open",
-    "",
-  );
+  const questions = page.locator('#faq [data-slot="accordion-trigger"]');
+  await questions.nth(1).click();
+  await expect(questions.nth(1)).toHaveAttribute("aria-expanded", "true");
+  await expect(questions.first()).toHaveAttribute("aria-expanded", "false");
   await page.locator("#contact").scrollIntoViewIfNeeded();
   await page
     .getByLabel("Ваше имя", { exact: true })
@@ -73,8 +74,8 @@ test("public landing catalogs, motion controls and contact submission", async ({
     .getByRole("dialog")
     .getByRole("link", { name: "Тренеры", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/trainers$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Тренеры");
+  await expect(page).toHaveURL(/\/#team$/);
+  await expect(page.locator("#team")).toBeInViewport();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -30,9 +32,13 @@ export function NextSessions() {
       {q.error ? (
         <p>
           Расписание временно недоступно.{" "}
-          <button type="button" onClick={() => void q.refetch()}>
+          <Button
+            variant="ghost"
+            type="button"
+            onClick={() => void q.refetch()}
+          >
             Обновить
-          </button>
+          </Button>
         </p>
       ) : !q.data ? (
         <p role="status">Загружаем ближайшие занятия…</p>
@@ -57,14 +63,14 @@ export function NextSessions() {
               {s.freePlaces ? `${s.freePlaces} мест` : "Очередь"}
             </span>
             <span className="round-link" aria-hidden="true">
-              ↗
+              {" "}
             </span>
           </Link>
         ))
       ) : (
         <p>
           Скоро здесь появятся новые занятия.{" "}
-          <Link href="/schedule">Посмотреть календарь →</Link>
+          <Link href="/schedule">Посмотреть календарь </Link>
         </p>
       )}
     </div>

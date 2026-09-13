@@ -1,4 +1,7 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+
+import { SelectField } from "@/components/ui/select-field";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -59,7 +62,7 @@ export function ProgramList({ area }: { area: Area }) {
           }}
         />
         <label>
-          <input
+          <Input
             type="checkbox"
             checked={archived}
             onChange={(e) => {
@@ -98,7 +101,7 @@ export function ProgramList({ area }: { area: Area }) {
                 </p>
                 <Button variant="outline" asChild>
                   <Link href={`/${area}/programs/${p.id}`}>
-                    Открыть конструктор →
+                    Открыть конструктор{" "}
                   </Link>
                 </Button>
               </article>
@@ -299,7 +302,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
               onChange={(e) => setDraft({ ...draft, title: e.target.value })}
             />
             <Label htmlFor="program-goal">Цель</Label>
-            <textarea
+            <Textarea
               id="program-goal"
               className="form-textarea"
               rows={3}
@@ -312,7 +315,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
             <div className="form-grid">
               <div>
                 <Label htmlFor="program-level">Уровень</Label>
-                <select
+                <SelectField
                   className="form-select"
                   id="program-level"
                   value={draft.level}
@@ -325,7 +328,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
                       {l}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
               <div>
                 <Label htmlFor="program-weeks">Недель</Label>
@@ -344,7 +347,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
             {area === "admin" && !program && (
               <>
                 <Label htmlFor="program-author">Тренер — автор</Label>
-                <select
+                <SelectField
                   id="program-author"
                   className="form-select"
                   value={author}
@@ -357,7 +360,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
                       {t.user.name}
                     </option>
                   ))}
-                </select>
+                </SelectField>
                 {trainers.error && (
                   <p className="form-error">{trainers.error.message}</p>
                 )}
@@ -406,7 +409,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
                   </label>
                   <label>
                     День недели
-                    <select
+                    <SelectField
                       className="form-select"
                       aria-label={`День занятия ${di + 1}`}
                       value={day.dayIndex}
@@ -434,7 +437,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
                           {d}
                         </option>
                       ))}
-                    </select>
+                    </SelectField>
                   </label>
                 </div>
                 <label className="block mt-4">
@@ -599,7 +602,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
                     value={exerciseQ}
                     onChange={(e) => setExerciseQ(e.target.value)}
                   />
-                  <select
+                  <SelectField
                     className="form-select"
                     aria-label={`Добавить упражнение в занятие ${di + 1}`}
                     value=""
@@ -643,7 +646,7 @@ function Editor({ program, area }: { program?: Program; area: Area }) {
                         {e.name}
                       </option>
                     ))}
-                  </select>
+                  </SelectField>
                   {library.error && (
                     <p className="form-error">{library.error.message}</p>
                   )}
@@ -822,7 +825,7 @@ function AssignForm({
         />
       )}
       <Label htmlFor="assign-client">Клиент</Label>
-      <select
+      <SelectField
         className="form-select"
         id="assign-client"
         name="clientId"
@@ -835,9 +838,9 @@ function AssignForm({
             {c.name}
           </option>
         ))}
-      </select>
+      </SelectField>
       <Label htmlFor="assign-version">Версия</Label>
-      <select
+      <SelectField
         className="form-select"
         id="assign-version"
         name="programVersionId"
@@ -848,7 +851,7 @@ function AssignForm({
             Версия {v.number} · {v.title}
           </option>
         ))}
-      </select>
+      </SelectField>
       <Label htmlFor="assign-start">Начало</Label>
       <Input
         type="date"

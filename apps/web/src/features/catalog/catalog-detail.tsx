@@ -1,4 +1,7 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -225,7 +228,7 @@ export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
               }}
             >
               <Label htmlFor="text">Новая заметка</Label>
-              <textarea
+              <Textarea
                 name="text"
                 id="text"
                 className="form-textarea"
@@ -352,7 +355,7 @@ export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
             ) : action === "trainers" ? (
               <div className="field">
                 <Label htmlFor="trainerId">Тренер</Label>
-                <select
+                <SelectField
                   className="form-select"
                   id="trainerId"
                   name="trainerId"
@@ -363,7 +366,7 @@ export function CatalogDetail({ kind, id }: { kind: Kind; id: string }) {
                       {t.name}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
             ) : (
               <>

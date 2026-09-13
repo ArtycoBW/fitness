@@ -88,8 +88,7 @@ export class BookingCore {
       c.user?.status === "BLOCKED"
     )
       return "Посещения для клиента недоступны";
-    if (self && (!c.phone || !c.user?.emailVerifiedAt))
-      return "Для записи заполните телефон и подтвердите электронную почту";
+    if (self && !c.phone) return "Для записи добавьте контактный телефон";
     return null;
   }
   async conflict(

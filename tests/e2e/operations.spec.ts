@@ -1,3 +1,4 @@
+import { selectOption } from "./controls";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 test("reports export and lead workflow survive reload", async ({ page }) => {
@@ -51,19 +52,17 @@ test("reports export and lead workflow survive reload", async ({ page }) => {
   await page.goto("/admin/leads");
   await page.getByLabel("Поиск обращения").fill(name);
   await page.getByRole("link", { name, exact: true }).click();
-  await page.getByLabel("Статус", { exact: true }).selectOption("SCHEDULED");
-  await page
-    .getByLabel("Ответственный")
-    .selectOption({ label: "Дарья Лебедева" });
+  await selectOption(page.getByLabel("Статус", { exact: true }), "SCHEDULED");
+  await selectOption(page.getByLabel("Ответственный"), {
+    label: "Дарья Лебедева",
+  });
   await page
     .getByLabel("Результат контакта")
     .fill("Согласовали знакомство с тренером в клубе");
   await page.getByRole("button", { name: "Сохранить результат" }).click();
   await expect(page.getByText("Обращение обновлено")).toBeVisible();
   await page.reload();
-  await expect(
-    page.getByLabel("Ответственный").locator("option:checked"),
-  ).toHaveText("Дарья Лебедева");
+  await expect(page.getByLabel("Ответственный")).toHaveText("Дарья Лебедева");
   await expect(
     page.getByText("Согласовали знакомство с тренером в клубе"),
   ).toBeVisible();

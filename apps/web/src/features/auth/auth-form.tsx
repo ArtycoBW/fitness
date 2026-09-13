@@ -1,11 +1,14 @@
 "use client";
+
+import { AuthArtCarousel } from "./art-carousel";
+import { Brand } from "@/components/brand";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,8 +109,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <div className="auth-page">
       <aside className="auth-art">
+        <AuthArtCarousel />
         <Link className="brand" href="/">
-          страйд<span>клуб движения</span>
+          <Brand />
         </Link>
         <div>
           <span className="eyebrow">МЕСТО ДЛЯ ВАШЕГО РИТМА</span>
@@ -121,12 +125,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </div>
         <div className="auth-art-foot">
           <span>Движение, которое остаётся с вами.</span>
-          <ArrowUpRight size={24} />
         </div>
       </aside>
       <section className="auth-form-wrap">
         <Link href="/" className="auth-back">
-          Вернуться на сайт <ArrowUpRight size={15} />
+          Вернуться на сайт
         </Link>
         <div className="auth-form">
           <span className="eyebrow">ЛИЧНОЕ ПРОСТРАНСТВО</span>
@@ -211,7 +214,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               )}
               {mode === "register" && (
                 <label className="consent">
-                  <input type="checkbox" {...form.register("consent")} />
+                  <Input type="checkbox" {...form.register("consent")} />
                   <span>
                     Принимаю <Link href="/terms">условия клуба</Link> и{" "}
                     <Link href="/privacy">политику конфиденциальности</Link>
@@ -230,7 +233,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 disabled={form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? "Подождите…" : spec.button}
-                <ArrowRight size={18} />
               </Button>
             </form>
           )}

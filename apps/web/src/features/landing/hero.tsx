@@ -1,7 +1,10 @@
 "use client";
+
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUpRight, Pause, Play } from "lucide-react";
+import { ScrollCue } from "./scroll-cue";
+import { Button } from "@/components/ui/button";
+import { Pause, Play } from "lucide-react";
 import { heroRevealConfig } from "./stride/hero-reveal.config";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 import { useHasHover } from "@/hooks/use-has-hover";
@@ -75,7 +78,12 @@ export function Hero({
     };
   }, [reduced, hasHover]);
   return (
-    <section ref={root} className="stride-hero" aria-labelledby="hero-title">
+    <section
+      id="home"
+      ref={root}
+      className="stride-hero"
+      aria-labelledby="hero-title"
+    >
       <link
         rel="preload"
         as="image"
@@ -107,7 +115,8 @@ export function Hero({
       <div className="hero-scrim" aria-hidden="true" />
       <div className="hero-topline">
         <span>СТРАЙД / КЛУБ ДВИЖЕНИЯ</span>
-        <button
+        <Button
+          variant="ghost"
           type="button"
           className="hero-pause"
           onClick={() => {
@@ -119,7 +128,7 @@ export function Hero({
           }
         >
           {playbackPaused ? <Play size={16} /> : <Pause size={16} />}
-        </button>
+        </Button>
       </div>
       <div className="hero-bottom">
         <div className="hero-copy">
@@ -134,11 +143,11 @@ export function Hero({
             новое и находите свой темп.
           </p>
           <div className="hero-actions">
-            <Link href="/schedule" className="landing-button light">
-              Выбрать тренировку <ArrowUpRight size={18} />
+            <Link href="#timetable" className="landing-button light">
+              Выбрать тренировку
             </Link>
             <a href="#club" className="hero-secondary">
-              Узнать клуб <ArrowDown size={17} />
+              Узнать клуб
             </a>
           </div>
         </div>
@@ -160,18 +169,10 @@ export function Hero({
             </div>
           </div>
           <p>Выберите занятие, а мы поможем освоиться.</p>
-          <a href="#contact">
-            Познакомиться с клубом <ArrowUpRight size={17} />
-          </a>
+          <a href="#contact">Познакомиться с клубом</a>
         </aside>
       </div>
-      <a
-        className="hero-scroll"
-        href="#club"
-        aria-label="Перейти к знакомству с клубом"
-      >
-        <ArrowDown size={18} />
-      </a>
+      <ScrollCue target="club" />
     </section>
   );
 }

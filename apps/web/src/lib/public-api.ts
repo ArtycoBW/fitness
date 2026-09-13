@@ -1,4 +1,5 @@
 import "server-only";
+import { workoutPhoto, trainerPhoto } from "@/features/landing/media";
 export async function publicApi<T>(path: string): Promise<T | null> {
   try {
     const r = await fetch(
@@ -8,7 +9,26 @@ export async function publicApi<T>(path: string): Promise<T | null> {
       { next: { revalidate: 60 }, signal: AbortSignal.timeout(5000) },
     );
     if (!r.ok) return null;
-    return (await r.json()) as T;
+    const data = await r.json();
+    const enrich = (item: Record<string, unknown>) =>
+      path.startsWith("workouts")
+        ? {
+            ...item,
+            imageUrl: item.imageUrl || workoutPhoto(String(item.name)),
+          }
+        : path.startsWith("trainers")
+          ? {
+              ...item,
+              avatarUrl: item.avatarUrl || trainerPhoto(String(item.name)),
+            }
+          : item;
+    return (
+      Array.isArray(data)
+        ? data.map(enrich)
+        : data && typeof data === "object"
+          ? enrich(data)
+          : data
+    ) as T;
   } catch {
     return null;
   }

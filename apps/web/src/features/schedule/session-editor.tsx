@@ -1,4 +1,6 @@
 "use client";
+
+import { SelectField } from "@/components/ui/select-field";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -165,7 +167,7 @@ export function SessionEditor({
               ].map(([kind, name, label]) => (
                 <div className="field" key={name}>
                   <Label htmlFor={name}>{label}</Label>
-                  <select
+                  <SelectField
                     className="form-select"
                     id={name}
                     name={name}
@@ -184,7 +186,7 @@ export function SessionEditor({
                         {kind === "halls" ? " · " + i.capacity + " мест" : ""}
                       </option>
                     ))}
-                  </select>
+                  </SelectField>
                 </div>
               ))}
               <div className="field">
@@ -201,7 +203,7 @@ export function SessionEditor({
               </div>
               <div className="field">
                 <Label htmlFor="status">Статус</Label>
-                <select
+                <SelectField
                   className="form-select"
                   name="status"
                   id="status"
@@ -213,11 +215,11 @@ export function SessionEditor({
                   {(!session || session.status === "DRAFT") && (
                     <option value="DRAFT">Черновик</option>
                   )}
-                </select>
+                </SelectField>
               </div>
               {!session && (
                 <label className="inline-check">
-                  <input
+                  <Input
                     type="checkbox"
                     checked={series}
                     onChange={(e) => setSeries(e.target.checked)}
@@ -274,7 +276,7 @@ export function SessionEditor({
                     <div className="button-row">
                       {[1, 2, 3, 4, 5, 6, 0].map((day) => (
                         <label className="inline-check" key={day}>
-                          <input
+                          <Input
                             type="checkbox"
                             name="weekdays"
                             value={day}
@@ -320,14 +322,18 @@ export function SessionEditor({
                 <>
                   <div className="field">
                     <Label htmlFor="scope">Область изменения</Label>
-                    <select className="form-select" id="scope" name="scope">
+                    <SelectField
+                      className="form-select"
+                      id="scope"
+                      name="scope"
+                    >
                       <option value="ONE">Только это занятие</option>
                       {session.seriesId && (
                         <option value="FUTURE">
                           Это и будущие занятия серии
                         </option>
                       )}
-                    </select>
+                    </SelectField>
                   </div>
                   <div className="field">
                     <Label htmlFor="reason">Причина изменения</Label>

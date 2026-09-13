@@ -1,4 +1,6 @@
 "use client";
+import { Brand } from "@/components/brand";
+import { SelectField } from "@/components/ui/select-field";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -10,15 +12,15 @@ import {
   Mail,
 } from "lucide-react";
 import { NotificationBell } from "@/features/operations/notifications";
-import { toast } from "sonner";
+import { WorkspaceModal, type WorkspaceOverlay } from "./workspace-modal";
+import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   UserRound,
   LogOut,
-  ArrowUpRight,
   ShieldCheck,
   Users,
   Dumbbell,
@@ -47,6 +49,7 @@ export function AppShell({
   children: React.ReactNode;
   area: "account" | "trainer" | "admin";
 }) {
+  const [overlay, setOverlay] = useState<WorkspaceOverlay | null>(null);
   const router = useRouter(),
     path = usePathname(),
     qc = useQueryClient();
@@ -90,6 +93,17 @@ export function AppShell({
       </div>
     );
   const root = "/" + area;
+  const areas = [
+    ...(user.roles.some((r) => ["OWNER", "ADMIN", "RECEPTION"].includes(r))
+      ? [{ value: "admin", label: "Управление клубом" }]
+      : []),
+    ...(user.roles.includes("TRAINER")
+      ? [{ value: "trainer", label: "Кабинет тренера" }]
+      : []),
+    ...(user.roles.includes("CLIENT")
+      ? [{ value: "account", label: "Личный кабинет" }]
+      : []),
+  ];
   const logout = async () => {
     await post("/auth/logout");
     qc.clear();
@@ -97,10 +111,38 @@ export function AppShell({
   };
   return (
     <Sidebar>
-      <div className="app-shell">
+      <div
+        className="app-shell"
+        onClickCapture={(event) => {
+          const link = (event.target as HTMLElement).closest("a");
+          if (
+            !link ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey ||
+            event.altKey
+          )
+            return;
+          const url = new URL(link.href, window.location.href);
+          if (url.origin !== window.location.origin) return;
+          const kind =
+            url.pathname === "/schedule"
+              ? "schedule"
+              : url.pathname === "/memberships"
+                ? "memberships"
+                : url.pathname === root + "/notifications"
+                  ? "notifications"
+                  : null;
+          if (kind) {
+            event.preventDefault();
+            event.stopPropagation();
+            setOverlay({ kind, search: url.search });
+          } else setOverlay(null);
+        }}
+      >
         <SidebarBody>
-          <Link href="/" className="brand">
-            страйд<span>клуб движения</span>
+          <Link href={root} className="brand">
+            <Brand />
           </Link>
           <div className="sidebar-caption">
             {area === "admin"
@@ -110,11 +152,6 @@ export function AppShell({
                 : "Личный кабинет"}
           </div>
           <nav className="sidebar-nav">
-            <SidebarLink
-              href={root + "/notifications"}
-              label="Уведомления"
-              icon={<Bell size={20} />}
-            />
             {area !== "account" && (
               <SidebarLink
                 href={root + "/reports"}
@@ -234,6 +271,11 @@ export function AppShell({
               </>
             )}
             <SidebarLink
+              href={root + "/notifications"}
+              label="Уведомления"
+              icon={<Bell size={20} />}
+            />
+            <SidebarLink
               href={root + "/profile"}
               label="Профиль"
               icon={<UserRound size={20} />}
@@ -248,34 +290,34 @@ export function AppShell({
               )}
           </nav>
           <div className="sidebar-bottom">
-            <Link href="/" className="sidebar-link">
-              <ArrowUpRight size={20} />
-              <span>На сайт клуба</span>
-            </Link>
-            <button className="sidebar-link" onClick={() => void logout()}>
+            <Button
+              variant="ghost"
+              className="sidebar-link"
+              onClick={() => void logout()}
+            >
               <LogOut size={20} />
               <span>Выйти</span>
-            </button>
+            </Button>
           </div>
         </SidebarBody>
         <div className="app-main">
           <header className="app-header">
-            <select
-              className="workspace-switch"
-              aria-label="Рабочее пространство"
-              value={area}
-              onChange={(e) => router.push("/" + e.target.value)}
-            >
-              {user.roles.some((r) =>
-                ["OWNER", "ADMIN", "RECEPTION"].includes(r),
-              ) && <option value="admin">Управление клубом</option>}
-              {user.roles.includes("TRAINER") && (
-                <option value="trainer">Кабинет тренера</option>
-              )}
-              {user.roles.includes("CLIENT") && (
-                <option value="account">Личный кабинет</option>
-              )}
-            </select>
+            {areas.length > 1 ? (
+              <SelectField
+                className="workspace-switch"
+                aria-label="Рабочее пространство"
+                value={area}
+                onChange={(e) => router.push("/" + e.target.value)}
+              >
+                {areas.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </SelectField>
+            ) : (
+              <span className="workspace-label">{areas[0]?.label}</span>
+            )}
             <div className="user-chip">
               <NotificationBell area={area} />
               <span>{user.name}</span>
@@ -303,30 +345,23 @@ export function AppShell({
             </div>
           </header>
           <main className="workspace-main">
-            {!user.emailVerifiedAt && (
-              <div className="notice">
-                Подтвердите email, чтобы покупать абонементы и записываться.{" "}
-                <button
-                  onClick={() =>
-                    void post("/auth/resend-verification")
-                      .then(() => toast.success("Письмо отправлено"))
-                      .catch((e) => toast.error(e.message))
-                  }
-                >
-                  Отправить письмо
-                </button>
-              </div>
-            )}
             {area === "account" && !user.client?.phone && (
               <div className="notice">
                 Добавьте контактный телефон для покупки абонементов и записи.{" "}
                 <Link href="/account/profile">Открыть профиль</Link>
               </div>
             )}
-            {children}
+            <div key={path} className="workspace-page">
+              {children}
+            </div>
           </main>
         </div>
       </div>
+      <WorkspaceModal
+        overlay={overlay}
+        close={() => setOverlay(null)}
+        navigate={setOverlay}
+      />
     </Sidebar>
   );
 }

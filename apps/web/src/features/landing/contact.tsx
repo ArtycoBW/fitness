@@ -1,4 +1,6 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
@@ -21,7 +23,7 @@ export function ContactForm() {
           выбрать удобное время.
         </p>
         <Link href="/schedule" className="table-link">
-          Посмотреть расписание →
+          Посмотреть расписание{" "}
         </Link>
       </div>
     );
@@ -83,7 +85,7 @@ export function ContactForm() {
       </div>
       <div>
         <Label htmlFor="contact-message">Расскажите о себе</Label>
-        <textarea
+        <Textarea
           id="contact-message"
           name="message"
           className="form-textarea"
@@ -97,11 +99,11 @@ export function ContactForm() {
       <div className="honeypot" aria-hidden="true">
         <label>
           Website
-          <input name="website" tabIndex={-1} autoComplete="off" />
+          <Input name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
       <label className="contact-consent">
-        <input type="checkbox" name="consent" required />
+        <Input type="checkbox" name="consent" required />
         <span>
           Согласен на обработку персональных данных по{" "}
           <Link href="/privacy">политике конфиденциальности</Link> для ответа на
@@ -115,7 +117,7 @@ export function ContactForm() {
       )}
       <Button disabled={send.isPending} size="lg">
         {send.isPending ? "Отправляем…" : "Познакомиться с клубом"}{" "}
-        <span aria-hidden="true">↗</span>
+        <span aria-hidden="true"> </span>
       </Button>
     </form>
   );

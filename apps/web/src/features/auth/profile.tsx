@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -138,7 +139,7 @@ export function Profile() {
             <Button variant="outline">Изменить пароль</Button>
           </form>
           <h3 className="mt-8 mb-3">Активные сессии</h3>
-          <div className="space-y-3">
+          <div className="space-y-3 profile-sessions">
             {sessionsError && (
               <p className="form-error">{sessionsError.message}</p>
             )}
@@ -148,7 +149,8 @@ export function Profile() {
                   {dateTime(s.lastSeenAt)}
                   {s.current ? " · Эта сессия" : ""}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() =>
                     void api("/auth/sessions/" + s.id, { method: "DELETE" })
                       .then(() => {
@@ -164,7 +166,7 @@ export function Profile() {
                   }
                 >
                   Завершить
-                </button>
+                </Button>
               </div>
             ))}
           </div>

@@ -1,9 +1,10 @@
 "use client";
+
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, ArrowUpRight } from "lucide-react";
+import { Check } from "lucide-react";
 import { api, post, type User } from "@/lib/api";
 import { money, visits } from "@/lib/format";
 import { localDay, addDays } from "@/features/schedule/types";
@@ -19,7 +20,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-export function PublicPlans() {
+export function PublicPlans({
+  embedded = false,
+  onOrder,
+}: {
+  embedded?: boolean;
+  onOrder?: (id: string) => void;
+}) {
   const { data, error } = useQuery({
       queryKey: ["public-plans"],
       queryFn: () => api<Plan[]>("/public/membership-plans"),
@@ -39,12 +46,13 @@ export function PublicPlans() {
         { planVersionId: selected?.versions[0]?.id, activationDate: date },
         key,
       ),
-    onSuccess: (o) => router.push("/checkout/" + o.id),
+    onSuccess: (o) =>
+      onOrder ? onOrder(o.id) : router.push("/checkout/" + o.id),
   });
   const v = selected?.versions[0];
   return (
     <>
-      <PublicHeader />
+      {!embedded && <PublicHeader />}
       <main id="main-content" className="public-plans">
         <div className="public-plans-heading">
           <span className="eyebrow">НАЧНИТЕ В СВОЁМ ТЕМПЕ</span>
@@ -106,7 +114,6 @@ export function PublicPlans() {
                   }}
                 >
                   Выбрать абонемент
-                  <ArrowUpRight size={17} />
                 </Button>
               </article>
             );
@@ -140,11 +147,9 @@ export function PublicPlans() {
             <p>
               Для продажи клиенту откройте раздел «Оплаты» в рабочем кабинете.
             </p>
-          ) : !user.emailVerifiedAt || !user.client?.phone ? (
+          ) : !user.client?.phone ? (
             <div className="form-stack">
-              <p>
-                Для покупки подтвердите почту и добавьте контактный телефон.
-              </p>
+              <p>Для покупки добавьте контактный телефон.</p>
               <Button asChild>
                 <Link href="/account/profile">Открыть профиль</Link>
               </Button>

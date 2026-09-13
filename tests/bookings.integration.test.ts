@@ -154,7 +154,7 @@ beforeAll(async () => {
         name: "Руководитель записей",
         email: "book-owner-" + key + "@example.com",
         passwordHash: "unused",
-        emailVerifiedAt: new Date(),
+        emailVerifiedAt: null,
         roles: { create: { role: "OWNER" } },
       },
     });
@@ -240,7 +240,7 @@ beforeAll(async () => {
           name: "Участник " + i,
           email: "book-client-" + i + "-" + key + "@example.com",
           passwordHash: "unused",
-          emailVerifiedAt: new Date(),
+          emailVerifiedAt: null,
           roles: { create: { role: "CLIENT" } },
           client: { create: { name: "Участник " + i, phone: "+79991234567" } },
         },

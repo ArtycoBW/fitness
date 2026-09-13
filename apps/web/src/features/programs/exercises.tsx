@@ -1,4 +1,7 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+
+import { SelectField } from "@/components/ui/select-field";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -65,7 +68,7 @@ export function Exercises() {
           }}
         />
         <label>
-          <input
+          <Input
             type="checkbox"
             checked={archived}
             onChange={(e) => {
@@ -226,7 +229,7 @@ function ExerciseForm({ value, done }: { value?: Exercise; done: () => void }) {
         defaultValue={value?.equipment.join(", ")}
       />
       <Label htmlFor="ex-metric">Показатель</Label>
-      <select
+      <SelectField
         id="ex-metric"
         className="form-select"
         name="metricType"
@@ -234,9 +237,9 @@ function ExerciseForm({ value, done }: { value?: Exercise; done: () => void }) {
       >
         <option value="REPS">Повторения</option>
         <option value="DURATION">Время, секунды</option>
-      </select>
+      </SelectField>
       <Label htmlFor="ex-instructions">Техника выполнения</Label>
-      <textarea
+      <Textarea
         id="ex-instructions"
         className="form-textarea"
         name="instructions"
