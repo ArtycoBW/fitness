@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import {
   motion,
   useScroll,
@@ -30,6 +30,7 @@ export function PublicHeader() {
     { scrollY } = useScroll();
   const last = useRef(0),
     travel = useRef(0),
+    pendingAnchor = useRef<string | null>(null),
     header = useRef<HTMLElement>(null);
   useMotionValueEvent(scrollY, "change", (y) => {
     if (window.matchMedia("(max-width:1000px)").matches) {
@@ -58,6 +59,13 @@ export function PublicHeader() {
     ["Абонементы", "plans"],
   ];
   const href = (id: string) => (path === "/" ? "" : "/") + "#" + id;
+  const chooseAnchor = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return;
+    pendingAnchor.current = id;
+    setOpen(false);
+    if (path === "/") event.preventDefault();
+  };
   const { data: user } = useQuery({
     queryKey: ["me"],
     queryFn: () =>
@@ -124,7 +132,31 @@ export function PublicHeader() {
               <Menu size={22} />
             </Button>
           </SheetTrigger>
-          <SheetContent>
+          <SheetContent
+            onCloseAutoFocus={(event) => {
+              const id = pendingAnchor.current;
+              if (!id) return;
+              event.preventDefault();
+              pendingAnchor.current = null;
+              if (path !== "/") return;
+              // Wait for the modal scroll lock to release before moving the page.
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                  const section = document.getElementById(id);
+                  if (!section) return;
+                  const heading =
+                    section.querySelector<HTMLElement>("h1, h2") ?? section;
+                  heading.setAttribute("tabindex", "-1");
+                  heading.focus({ preventScroll: true });
+                  window.history.pushState(null, "", "#" + id);
+                  section.scrollIntoView({
+                    block: "start",
+                    behavior: reduce ? "instant" : "smooth",
+                  });
+                }),
+              );
+            }}
+          >
             <SheetHeader>
               <SheetTitle>
                 <Brand />
@@ -133,11 +165,18 @@ export function PublicHeader() {
             </SheetHeader>
             <nav className="public-mobile-nav" aria-label="Меню сайта">
               {links.map(([label, id]) => (
-                <Link key={id} href={href(id!)} onClick={() => setOpen(false)}>
+                <Link
+                  key={id}
+                  href={href(id!)}
+                  onClick={(event) => chooseAnchor(event, id!)}
+                >
                   {label}
                 </Link>
               ))}
-              <Link href={href("contact")} onClick={() => setOpen(false)}>
+              <Link
+                href={href("contact")}
+                onClick={(event) => chooseAnchor(event, "contact")}
+              >
                 Познакомиться с клубом
               </Link>
               <Link href={user ? workspace(user) : "/login"}>

@@ -76,6 +76,15 @@ test("public landing catalogs, motion controls and contact submission", async ({
     .click();
   await expect(page).toHaveURL(/\/#team$/);
   await expect(page.locator("#team")).toBeInViewport();
+  await expect(page.locator("#team h2")).toBeFocused();
+  await page.getByRole("button", { name: "Открыть меню сайта" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("link", { name: "Направления", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/#directions$/);
+  await expect(page.locator("#directions h2")).toBeFocused();
+  await expect(page.locator("#directions")).toBeInViewport();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
