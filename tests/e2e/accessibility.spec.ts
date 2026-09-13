@@ -42,6 +42,12 @@ test("accessible management screens", async ({ page }) => {
   ]) {
     await page.goto(route);
     await expect(page.locator("h1")).toBeVisible();
+    if (route === "/admin/reports") {
+      // Scan the populated report, after the export action leaves its loading state.
+      await expect(
+        page.getByRole("button", { name: "Подготовить CSV" }),
+      ).toBeEnabled();
+    }
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
       .analyze();
