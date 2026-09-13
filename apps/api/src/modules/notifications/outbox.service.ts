@@ -3,7 +3,10 @@ import nodemailer from "nodemailer";
 import { Db } from "../../db";
 import { env } from "../../config";
 import { unseal } from "../../common/crypto";
+import { preferences } from "./notification.service";
 interface MailPayload {
+  recipientId?: string;
+  category?: "BOOKING" | "PROGRAM" | "PAYMENT" | "REMINDER";
   to: string;
   subject: string;
   text: string;
@@ -36,11 +39,29 @@ export class OutboxService {
       try {
         if (event.type === "EMAIL") {
           const mail = unseal<MailPayload>(event.payload);
-          await this.transport.sendMail({
-            ...mail,
-            from: env.SMTP_FROM,
-            messageId: "<" + event.id + "@fitness.local>",
-          });
+          let enabled = true;
+          if (mail.recipientId && mail.category) {
+            const u = await this.db.user.findUnique({
+              where: { id: mail.recipientId },
+            });
+            const p = preferences.parse(u?.notificationPreferences ?? {});
+            enabled =
+              !!u &&
+              {
+                BOOKING: p.bookingEmail,
+                PROGRAM: p.programEmail,
+                PAYMENT: p.paymentEmail,
+                REMINDER: p.reminders && p.reminderEmail,
+              }[mail.category];
+          }
+          if (enabled)
+            await this.transport.sendMail({
+              to: mail.to,
+              subject: mail.subject,
+              text: mail.text,
+              from: env.SMTP_FROM,
+              messageId: "<" + event.id + "@fitness.local>",
+            });
         } else throw new Error("Unsupported outbox event");
         await this.db.outboxEvent.update({
           where: { id: event.id },

@@ -1,3 +1,4 @@
+import { requestId } from "../../common/request-context";
 import { Injectable } from "@nestjs/common";
 import { hash, verify } from "argon2";
 import { Prisma } from "../../generated/prisma/client";
@@ -304,6 +305,7 @@ export class AuthService {
       await tx.auditLog.create({
         data: {
           actorId: auth.id,
+          requestId: requestId(),
           action: "STAFF_INVITED",
           entityType: "User",
           entityId: emailKey(dto.email),
@@ -415,6 +417,7 @@ export class AuthService {
       await tx.auditLog.create({
         data: {
           actorId: auth.id,
+          requestId: requestId(),
           action: "ROLES_CHANGED",
           entityType: "User",
           entityId: id,
@@ -449,6 +452,7 @@ export class AuthService {
       this.db.auditLog.create({
         data: {
           actorId: auth.id,
+          requestId: requestId(),
           action: blocked ? "USER_BLOCKED" : "USER_UNBLOCKED",
           entityType: "User",
           entityId: id,

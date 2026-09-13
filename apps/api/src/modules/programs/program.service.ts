@@ -12,7 +12,7 @@ import {
 import { atomic, audit, changed, type Tx } from "../../common/transaction";
 import { idempotent } from "../../common/idempotency";
 import { fail } from "../../common/business-error";
-import { seal } from "../../common/crypto";
+import { notifyUser } from "../notifications/notification.service";
 import type { Principal } from "../auth/access";
 import type {
   ProgramAssignment,
@@ -376,26 +376,12 @@ export class ProgramService {
         where: { id: a.programVersionId },
       }),
       eventKey = "assignment:" + a.id + ":" + a.version;
-    await tx.notification.create({
-      data: {
-        recipientId: c.userId,
-        type: "PROGRAM",
-        title,
-        text: v.title,
-        href: "/account/programs/" + a.id,
-        eventKey,
-      },
-    });
-    await tx.outboxEvent.create({
-      data: {
-        type: "EMAIL",
-        dedupKey: eventKey,
-        payload: seal({
-          to: c.user.email,
-          subject: title + " · Страйд",
-          text: v.title + "\nПрограмма доступна в вашем кабинете.",
-        }),
-      },
+    await notifyUser(tx, c.userId, {
+      type: "PROGRAM",
+      title,
+      text: v.title,
+      href: "/account/programs/" + a.id,
+      eventKey,
     });
   }
   async assignInTx(tx: Tx, auth: Principal, dto: z.infer<typeof assignSchema>) {

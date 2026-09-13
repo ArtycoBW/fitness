@@ -29,11 +29,9 @@ export async function api<T>(
       ...options.headers,
     },
   });
-  const body = await response
-    .json()
-    .catch(() => ({
-      error: { code: "NETWORK_ERROR", message: "Сервис временно недоступен" },
-    }));
+  const body = await response.json().catch(() => ({
+    error: { code: "NETWORK_ERROR", message: "Сервис временно недоступен" },
+  }));
   if (!response.ok)
     throw new ApiError(
       body.error?.code ?? "ERROR",

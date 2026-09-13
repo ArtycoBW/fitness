@@ -8,11 +8,12 @@ import {
   UploadedFile,
   UseInterceptors,
   Module,
+  Injectable,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import type { Response } from "express";
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile, unlink } from "node:fs/promises";
+import { mkdir, writeFile, unlink, readdir, stat } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import sharp from "sharp";
 import { Db } from "../../db";
@@ -20,6 +21,7 @@ import { env } from "../../config";
 import { AuthRequest, Public } from "../auth/access";
 import { fail } from "../../common/business-error";
 import { parse, uuid } from "../../common/validation";
+import { audit } from "../../common/transaction";
 @Controller("media")
 export class MediaController {
   constructor(private readonly db: Db) {}
@@ -87,18 +89,21 @@ export class MediaController {
     await writeFile(path, bytes);
     const url = "/api/v1/media/" + name;
     try {
-      if (kind === "users")
-        await this.db.user.update({ where: { id }, data: { avatarUrl: url } });
-      else if (kind === "halls")
-        await this.db.hall.update({
-          where: { id },
-          data: { imageUrl: url, version: { increment: 1 } },
-        });
-      else
-        await this.db.workoutType.update({
-          where: { id },
-          data: { imageUrl: url, version: { increment: 1 } },
-        });
+      await this.db.$transaction(async (tx) => {
+        if (kind === "users")
+          await tx.user.update({ where: { id }, data: { avatarUrl: url } });
+        else if (kind === "halls")
+          await tx.hall.update({
+            where: { id },
+            data: { imageUrl: url, version: { increment: 1 } },
+          });
+        else
+          await tx.workoutType.update({
+            where: { id },
+            data: { imageUrl: url, version: { increment: 1 } },
+          });
+        await audit(tx, req.auth.id, "IMAGE_UPDATED", kind, id, { url });
+      });
     } catch (e) {
       await unlink(path);
       throw e;
@@ -106,5 +111,31 @@ export class MediaController {
     return { url };
   }
 }
-@Module({ controllers: [MediaController] })
+@Injectable()
+export class MediaMaintenance {
+  private lastRun = 0;
+  constructor(private readonly db: Db) {}
+  async tick() {
+    if (Date.now() - this.lastRun < 3600000) return;
+    this.lastRun = Date.now();
+    const directory = resolve(env.UPLOADS_DIR),
+      files = await readdir(directory).catch(() => []),
+      refs = await this.db.$queryRaw<
+        { url: string }[]
+      >`SELECT "avatarUrl" AS url FROM "User" WHERE "avatarUrl" IS NOT NULL UNION SELECT "imageUrl" AS url FROM "Hall" WHERE "imageUrl" IS NOT NULL UNION SELECT "imageUrl" AS url FROM "WorkoutType" WHERE "imageUrl" IS NOT NULL UNION SELECT "imageUrl" AS url FROM "Exercise" WHERE "imageUrl" IS NOT NULL UNION SELECT "exerciseSnapshot"->>'imageUrl' AS url FROM "ProgramExercise" WHERE "exerciseSnapshot"->>'imageUrl' IS NOT NULL`;
+    const used = new Set(refs.map((r) => r.url));
+    for (const file of files) {
+      if (
+        !/^[a-f0-9-]{36}\.webp$/.test(file) ||
+        used.has("/api/v1/media/" + file)
+      )
+        continue;
+      const path = join(directory, file),
+        info = await stat(path).catch(() => null);
+      if (info?.isFile() && info.mtimeMs < Date.now() - 7 * 86400000)
+        await unlink(path);
+    }
+  }
+}
+@Module({ controllers: [MediaController], providers: [MediaMaintenance] })
 export class MediaModule {}

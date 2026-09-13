@@ -1,6 +1,7 @@
 import { Prisma } from "../generated/prisma/client";
 import { Db } from "../db";
 import { fail } from "./business-error";
+import { requestId } from "./request-context";
 export type Tx = Prisma.TransactionClient;
 export async function atomic<T>(
   db: Db,
@@ -63,7 +64,15 @@ export function audit(
   reason?: string,
 ) {
   return tx.auditLog.create({
-    data: { actorId, action, entityType, entityId, changes, reason },
+    data: {
+      actorId,
+      action,
+      entityType,
+      entityId,
+      changes,
+      reason,
+      requestId: requestId(),
+    },
   });
 }
 export function changed(count: number) {

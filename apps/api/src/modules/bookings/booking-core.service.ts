@@ -11,7 +11,7 @@ import {
   version,
 } from "../../common/validation";
 import { idempotent } from "../../common/idempotency";
-import { seal } from "../../common/crypto";
+import { notifyUser } from "../notifications/notification.service";
 import { z } from "zod";
 import type { Principal } from "../auth/access";
 import type { Booking, ScheduledSession } from "../../generated/prisma/client";
@@ -126,26 +126,12 @@ export class BookingCore {
     const text =
       s.workout.name + " · " + date + (reasonText ? "\n" + reasonText : "");
     const eventKey = "booking:" + b.id + ":" + b.version + ":" + b.status;
-    await tx.notification.upsert({
-      where: { recipientId_eventKey: { recipientId: c.userId, eventKey } },
-      create: {
-        recipientId: c.userId,
-        type: "BOOKING",
-        title,
-        text,
-        href: "/account/bookings/" + b.id,
-        eventKey,
-      },
-      update: {},
-    });
-    await tx.outboxEvent.upsert({
-      where: { dedupKey: eventKey },
-      create: {
-        type: "EMAIL",
-        dedupKey: eventKey,
-        payload: seal({ to: c.user.email, subject: title + " · Страйд", text }),
-      },
-      update: {},
+    await notifyUser(tx, c.userId, {
+      type: "BOOKING",
+      title,
+      text,
+      href: "/account/bookings/" + b.id,
+      eventKey,
     });
   }
   async transition(

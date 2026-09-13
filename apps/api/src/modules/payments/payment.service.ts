@@ -26,6 +26,7 @@ import {
 } from "./payment.schema";
 import { InternalPaymentProvider } from "./payment.provider";
 import { BookingCore } from "../bookings/booking-core.service";
+import { notifyUser } from "../notifications/notification.service";
 const pending = ["PROCESSING", "UNKNOWN"];
 const paymentInclude = {
   order: {
@@ -329,6 +330,20 @@ export class PaymentService {
     await audit(tx, order.createdBy, "PAYMENT_SUCCEEDED", "Payment", p.id, {
       amountMinor: p.amountMinor,
     });
+    if (client.userId)
+      await notifyUser(tx, client.userId, {
+        type: "PAYMENT",
+        title: "Оплата прошла",
+        text:
+          terms.title +
+          " · " +
+          new Intl.NumberFormat("ru-RU", {
+            style: "currency",
+            currency: "RUB",
+          }).format(p.amountMinor / 100),
+        href: "/payments/" + p.id + "/confirmation",
+        eventKey: "payment:" + p.id + ":success",
+      });
     if (m.endAt <= new Date()) {
       await tx.membership.update({
         where: { id: m.id },
@@ -582,6 +597,20 @@ export class PaymentService {
       },
     });
     if (result === "SUCCEEDED") {
+      const client = await tx.clientProfile.findUnique({
+        where: { id: m.clientId },
+      });
+      if (client?.userId)
+        await notifyUser(tx, client.userId, {
+          type: "PAYMENT",
+          title: "Возврат оформлен",
+          text: new Intl.NumberFormat("ru-RU", {
+            style: "currency",
+            currency: "RUB",
+          }).format(r.amountMinor / 100),
+          href: "/account/payments/" + p.id,
+          eventKey: "refund:" + r.id + ":success",
+        });
       const total = await tx.refund.aggregate({
         where: { paymentId: p.id, status: "SUCCEEDED" },
         _sum: { amountMinor: true },

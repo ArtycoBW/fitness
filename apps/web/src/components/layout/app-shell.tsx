@@ -1,6 +1,15 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Bell,
+  ChartNoAxesCombined,
+  MessageSquare,
+  Settings,
+  History,
+  Mail,
+} from "lucide-react";
+import { NotificationBell } from "@/features/operations/notifications";
 import { toast } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -101,6 +110,45 @@ export function AppShell({
                 : "Личный кабинет"}
           </div>
           <nav className="sidebar-nav">
+            <SidebarLink
+              href={root + "/notifications"}
+              label="Уведомления"
+              icon={<Bell size={20} />}
+            />
+            {area !== "account" && (
+              <SidebarLink
+                href={root + "/reports"}
+                label="Отчёты"
+                icon={<ChartNoAxesCombined size={20} />}
+              />
+            )}
+            {area === "admin" && (
+              <SidebarLink
+                href="/admin/leads"
+                label="Обращения"
+                icon={<MessageSquare size={20} />}
+              />
+            )}
+            {area === "admin" &&
+              user.roles.some((r) => ["OWNER", "ADMIN"].includes(r)) && (
+                <>
+                  <SidebarLink
+                    href="/admin/settings"
+                    label="Настройки клуба"
+                    icon={<Settings size={20} />}
+                  />
+                  <SidebarLink
+                    href="/admin/audit"
+                    label="Журнал действий"
+                    icon={<History size={20} />}
+                  />
+                  <SidebarLink
+                    href="/admin/deliveries"
+                    label="Доставка писем"
+                    icon={<Mail size={20} />}
+                  />
+                </>
+              )}
             {(area === "account" ||
               user.roles.some((r) =>
                 ["OWNER", "ADMIN", "TRAINER"].includes(r),
@@ -229,6 +277,7 @@ export function AppShell({
               )}
             </select>
             <div className="user-chip">
+              <NotificationBell area={area} />
               <span>{user.name}</span>
               <Link
                 href={root + "/profile"}

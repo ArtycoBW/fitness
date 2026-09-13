@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/image-upload";
 import { dateTime } from "@/lib/format";
 import { useRouter } from "next/navigation";
+import { NotificationPreferences } from "@/features/operations/notifications";
 export function Profile() {
   const qc = useQueryClient(),
     router = useRouter();
@@ -169,6 +170,7 @@ export function Profile() {
           </div>
         </section>
       </div>
+      <NotificationPreferences />
     </>
   );
 }

@@ -10,6 +10,7 @@ import type { Request, Response, NextFunction } from "express";
 import { AppModule } from "./app.module";
 import { Errors } from "./errors";
 import { env } from "./config";
+import { requestContext } from "./common/request-context";
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useBodyParser("json", { limit: "1mb" });
@@ -17,9 +18,10 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cookieParser());
   app.use((_req: Request, res: Response, next: NextFunction) => {
-    res.setHeader("X-Request-Id", randomUUID());
+    const requestId = randomUUID();
+    res.setHeader("X-Request-Id", requestId);
     res.setHeader("Cache-Control", "no-store");
-    next();
+    requestContext.run({ requestId }, next);
   });
   app.useGlobalPipes(
     new ValidationPipe({

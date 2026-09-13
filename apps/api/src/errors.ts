@@ -32,16 +32,14 @@ export class Errors implements ExceptionFilter {
       );
     const data =
       body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-    res
-      .status(status)
-      .json({
-        error: {
-          code:
-            data.code ?? (status === 500 ? "INTERNAL_ERROR" : "REQUEST_ERROR"),
-          message,
-          details: data.details,
-          requestId: res.getHeader("X-Request-Id"),
-        },
-      });
+    res.status(status).json({
+      error: {
+        code:
+          data.code ?? (status === 500 ? "INTERNAL_ERROR" : "REQUEST_ERROR"),
+        message,
+        details: data.details,
+        requestId: res.getHeader("X-Request-Id"),
+      },
+    });
   }
 }

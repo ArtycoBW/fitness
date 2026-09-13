@@ -4,6 +4,7 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 import "./programs.css";
 import "./dashboard.css";
+import "./operations.css";
 const sans = Manrope({
   subsets: ["latin", "cyrillic"],
   variable: "--font-manrope",

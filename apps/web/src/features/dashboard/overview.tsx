@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, ArrowUpRight, Users, Dumbbell } from "lucide-react";
 import { api, type User } from "@/lib/api";
-import { dateOnly, dateTime } from "@/lib/format";
+import { dateOnly, dateTime, money } from "@/lib/format";
+import { localDay, addDays } from "@/features/schedule/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Membership } from "@/features/memberships/memberships";
@@ -107,7 +108,12 @@ export function Overview({ area }: { area: Area }) {
               href={root + "/bookings?upcoming=false"}
             />
           </div>
-          {area === "admin" && <ReceptionSearch />}
+          {area === "admin" && (
+            <>
+              <FinanceOverview />
+              <ReceptionSearch />
+            </>
+          )}
           <section className="surface mt-6">
             <div className="heading-actions">
               <h2>Сегодня в расписании</h2>
@@ -288,6 +294,56 @@ function ClientOverview({ data }: { data: Dashboard }) {
         </section>
       </div>
     </>
+  );
+}
+function FinanceOverview() {
+  const today = localDay(),
+    from = addDays(today, -6);
+  const q = useQuery({
+    queryKey: ["dashboard", "finance", from, today],
+    queryFn: () =>
+      api<{ summary: Record<string, number> }>(
+        `/reports?area=admin&kind=FINANCE&from=${from}&to=${today}&limit=1`,
+      ),
+    refetchInterval: 30000,
+  });
+  return (
+    <section className="surface mt-6">
+      <div className="heading-actions">
+        <div>
+          <h2>Оплаты за семь дней</h2>
+          <p className="muted">
+            По дате подтверждения. В пределах ваших прав доступа.
+          </p>
+        </div>
+        <Link
+          className="table-link"
+          href={`/admin/reports?kind=FINANCE&from=${from}&to=${today}`}
+        >
+          Подробный отчёт →
+        </Link>
+      </div>
+      {q.error ? (
+        <p className="form-error">{q.error.message}</p>
+      ) : !q.data ? (
+        <p role="status">Считаем поступления…</p>
+      ) : (
+        <div className="report-summary">
+          {(
+            [
+              ["incomeMinor", "Поступления"],
+              ["refundsMinor", "Возвраты"],
+              ["netMinor", "Чистые поступления"],
+            ] as const
+          ).map(([key, label]) => (
+            <div key={key}>
+              <span>{label}</span>
+              <strong>{money(q.data!.summary[key] ?? 0)}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 function ReceptionSearch() {
