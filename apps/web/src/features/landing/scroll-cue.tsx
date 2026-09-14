@@ -50,8 +50,7 @@ export function ScrollCue({ suspended = false }: { suspended?: boolean }) {
       style={suspended ? { visibility: "hidden" } : undefined}
     >
       <a ref={root} href="#club" aria-label="Прокрутить к следующему разделу">
-        <Mouse size={27} strokeWidth={1.35} />
-        <span className="scroll-wheel" />
+        <Mouse size={27} strokeWidth={1.35} aria-hidden="true" />
       </a>
     </Button>
   );

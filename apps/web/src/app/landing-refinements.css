@@ -133,40 +133,32 @@ html {
   min-height: 44px;
   z-index: 44;
   color: #0f3e17;
-  background: #fffefce6;
+  background: transparent;
   border-radius: 50%;
   opacity: 0.8;
-  transition:
-    opacity 0.35s,
-    background 0.35s;
+  transition: opacity 0.35s;
 }
-.scroll-cue[data-hidden="true"] {
+.scroll-cue[data-slot="button"]:hover {
+  background: transparent;
+}
+.scroll-cue[data-slot="button"][data-hidden="true"] {
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
 }
-.scroll-cue[data-light="true"] {
+.scroll-cue[data-slot="button"][data-light="true"] {
   color: #fffefc;
-  background: #122c1b80;
 }
-.scroll-wheel {
-  position: absolute;
-  top: 13px;
-  left: 21px;
-  width: 2px;
-  height: 5px;
-  border-radius: 2px;
-  background: currentColor;
+.scroll-cue > svg path {
   animation: scroll-wheel 1.8s ease-in-out infinite;
 }
 .scroll-cue > svg {
   width: 27px;
   height: 27px;
-  animation: mouse-breathe 2.8s ease-in-out infinite;
 }
 @keyframes scroll-wheel {
   0% {
-    transform: translateY(-2px);
+    transform: translateY(0);
     opacity: 0;
   }
   25% {
@@ -174,14 +166,8 @@ html {
   }
   75%,
   100% {
-    transform: translateY(6px);
+    transform: translateY(4px);
     opacity: 0;
-  }
-}
-@keyframes mouse-breathe {
-  50% {
-    opacity: 0.45;
-    transform: translateY(3px);
   }
 }
 .photo-colonnade {
@@ -562,8 +548,7 @@ footer.cinematic-footer .footer-meta > :first-child {
   html {
     scroll-behavior: auto;
   }
-  .scroll-wheel,
-  .scroll-cue > svg,
+  .scroll-cue > svg path,
   .footer-ribbon > div,
   .direction-photo-panel {
     animation: none;
