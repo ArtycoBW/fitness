@@ -1,5 +1,12 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  // First-visit timing is covered separately in experience.spec.ts.
+  await page.addInitScript(() =>
+    localStorage.setItem("stride-intro-seen", "1"),
+  );
+});
+
 test("landing schedule opens in place and keeps hall filters", async ({
   page,
 }) => {
@@ -94,7 +101,8 @@ test("Almanac reveals the next trainer inside a pinned viewport", async ({
     "class",
     /is-in/,
   );
-  await page.getByRole("button", { name: "Следующий тренер" }).click();
+  await page.locator(".almanac-viewport").focus();
+  await page.keyboard.press("ArrowDown");
   await expect(page.locator(".almanac-card").nth(1)).toHaveAttribute(
     "class",
     /is-in/,
@@ -112,14 +120,15 @@ test("Almanac reveals the next trainer inside a pinned viewport", async ({
   expect(Math.abs(stage!.height - 1000)).toBeLessThan(2);
   const cards = page.locator(".almanac-card");
   for (let i = 2; i < (await cards.count()); i++) {
-    await page.getByRole("button", { name: "Следующий тренер" }).click();
+    await page.locator(".almanac-viewport").focus();
+    await page.keyboard.press("ArrowDown");
     await expect
       .poll(() => cards.nth(i).evaluate((n) => (n as HTMLElement).inert))
       .toBe(false);
   }
   await expect(
     page.getByRole("button", { name: "Следующий тренер" }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await expect
     .poll(() =>
       page.locator(".almanac-viewport").evaluate((node) => {

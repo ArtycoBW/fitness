@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PublicItem } from "./types";
 import { trainerPhoto } from "./media";
 export function Almanac({ items }: { items: PublicItem[] }) {
@@ -85,7 +84,21 @@ export function Almanac({ items }: { items: PublicItem[] }) {
       className="almanac-scroll"
       style={{ height: `${100 + Math.max(0, items.length - 1) * 70}dvh` }}
     >
-      <div className="almanac-viewport">
+      <div
+        className="almanac-viewport"
+        role="region"
+        aria-label="Тренеры клуба. Листайте страницу или используйте клавиши вверх и вниз"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          const delta =
+            event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
+          if (delta) {
+            event.preventDefault();
+            go(Math.max(0, Math.min(items.length - 1, active + delta)));
+          }
+        }}
+      >
         <div className="section-heading">
           <h2>
             Внимание к вам.
@@ -97,24 +110,6 @@ export function Almanac({ items }: { items: PublicItem[] }) {
               {String(active + 1).padStart(2, "0")} /{" "}
               {String(items.length).padStart(2, "0")}
             </span>
-            <Button
-              variant="outline"
-              size="icon"
-              disabled={!active}
-              onClick={() => go(active - 1)}
-              aria-label="Предыдущий тренер"
-            >
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              disabled={active === items.length - 1}
-              onClick={() => go(active + 1)}
-              aria-label="Следующий тренер"
-            >
-              <ChevronRight />
-            </Button>
           </div>
         </div>
         <div className="almanac-stack">

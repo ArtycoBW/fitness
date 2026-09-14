@@ -1,7 +1,5 @@
 "use client";
 
-import { AuthArtCarousel } from "./art-carousel";
-import { Brand } from "@/components/brand";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -116,145 +114,111 @@ export function AuthForm({ mode }: { mode: Mode }) {
     }
   };
   return (
-    <div className="auth-page">
-      <aside className="auth-art">
-        <AuthArtCarousel />
-        <Link className="brand" href="/">
-          <Brand />
-        </Link>
-        <div>
-          <span className="eyebrow">МЕСТО ДЛЯ ВАШЕГО РИТМА</span>
-          <h2>
-            Сильнее.
-            <br />
-            Спокойнее.
-            <br />
-            <i>Ближе к себе.</i>
-          </h2>
+    <div className="auth-form">
+      <span className="eyebrow">ЛИЧНОЕ ПРОСТРАНСТВО</span>
+      <h1>{spec.title}</h1>
+      <p className="muted">{spec.description}</p>
+      {success ? (
+        <div className="success-box" role="status">
+          <Check />
+          <p>{success}</p>
+          <Button asChild>
+            <Link href="/login">Перейти ко входу</Link>
+          </Button>
         </div>
-        <div className="auth-art-foot">
-          <span>Движение, которое остаётся с вами.</span>
-        </div>
-      </aside>
-      <section className="auth-form-wrap">
-        <Link href="/" className="auth-back">
-          Вернуться на сайт
-        </Link>
-        <div className="auth-form">
-          <span className="eyebrow">ЛИЧНОЕ ПРОСТРАНСТВО</span>
-          <h1>{spec.title}</h1>
-          <p className="muted">{spec.description}</p>
-          {success ? (
-            <div className="success-box" role="status">
-              <Check />
-              <p>{success}</p>
-              <Button asChild>
-                <Link href="/login">Перейти ко входу</Link>
-              </Button>
+      ) : (
+        <form onSubmit={form.handleSubmit(submit)} className="form-stack">
+          {mode === "register" && (
+            <div className="field">
+              <Label htmlFor="name">Ваше имя</Label>
+              <Input id="name" autoComplete="name" {...form.register("name")} />
+              {form.formState.errors.name && (
+                <p className="field-error">
+                  {form.formState.errors.name.message}
+                </p>
+              )}
             </div>
-          ) : (
-            <form onSubmit={form.handleSubmit(submit)} className="form-stack">
-              {mode === "register" && (
-                <div className="field">
-                  <Label htmlFor="name">Ваше имя</Label>
-                  <Input
-                    id="name"
-                    autoComplete="name"
-                    {...form.register("name")}
-                  />
-                  {form.formState.errors.name && (
-                    <p className="field-error">
-                      {form.formState.errors.name.message}
-                    </p>
-                  )}
-                </div>
-              )}
-              {["login", "register", "forgot-password"].includes(mode) && (
-                <div className="field">
-                  <Label htmlFor="email">Электронная почта</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.ru"
-                    required
-                    {...form.register("email")}
-                  />
-                  {form.formState.errors.email && (
-                    <p className="field-error">
-                      {form.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
-              )}
-              {[
-                "login",
-                "register",
-                "reset-password",
-                "accept-invite",
-              ].includes(mode) && (
-                <div className="field">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Пароль</Label>
-                    {mode === "login" && (
-                      <Link className="text-sm" href="/forgot-password">
-                        Забыли пароль?
-                      </Link>
-                    )}
-                  </div>
-                  <PasswordInput
-                    id="password"
-                    strength={mode !== "login"}
-                    autoComplete={
-                      mode === "login" ? "current-password" : "new-password"
-                    }
-                    required
-                    {...form.register("password")}
-                  />
-                  {form.formState.errors.password && (
-                    <p className="field-error">
-                      {form.formState.errors.password.message}
-                    </p>
-                  )}
-                </div>
-              )}
-              {mode === "register" && (
-                <label className="consent">
-                  <Input type="checkbox" {...form.register("consent")} />
-                  <span>
-                    Принимаю <Link href="/terms">условия клуба</Link> и{" "}
-                    <Link href="/privacy">политику конфиденциальности</Link>
-                  </span>
-                </label>
-              )}
-              {error && (
-                <div className="form-error" role="alert">
-                  {error}
-                </div>
-              )}
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting ? "Подождите…" : spec.button}
-              </Button>
-            </form>
           )}
-          {mode === "login" && (
-            <p className="auth-switch">
-              Ещё нет аккаунта? <Link href="/register">Зарегистрироваться</Link>
-            </p>
+          {["login", "register", "forgot-password"].includes(mode) && (
+            <div className="field">
+              <Label htmlFor="email">Электронная почта</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.ru"
+                required
+                {...form.register("email")}
+              />
+              {form.formState.errors.email && (
+                <p className="field-error">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
+            </div>
+          )}
+          {["login", "register", "reset-password", "accept-invite"].includes(
+            mode,
+          ) && (
+            <div className="field">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Пароль</Label>
+                {mode === "login" && (
+                  <Link className="text-sm" href="/forgot-password">
+                    Забыли пароль?
+                  </Link>
+                )}
+              </div>
+              <PasswordInput
+                id="password"
+                strength={mode !== "login"}
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
+                required
+                {...form.register("password")}
+              />
+              {form.formState.errors.password && (
+                <p className="field-error">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
+            </div>
           )}
           {mode === "register" && (
-            <p className="auth-switch">
-              Уже с нами? <Link href="/login">Войти</Link>
-            </p>
+            <label className="consent">
+              <Input type="checkbox" {...form.register("consent")} />
+              <span>
+                Принимаю <Link href="/terms">условия клуба</Link> и{" "}
+                <Link href="/privacy">политику конфиденциальности</Link>
+              </span>
+            </label>
           )}
-        </div>
-        <span className="auth-footer">СТРАЙД · КЛУБ ДВИЖЕНИЯ</span>
-      </section>
+          {error && (
+            <div className="form-error" role="alert">
+              {error}
+            </div>
+          )}
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? "Подождите…" : spec.button}
+          </Button>
+        </form>
+      )}
+      {mode === "login" && (
+        <p className="auth-switch">
+          Ещё нет аккаунта? <Link href="/register">Зарегистрироваться</Link>
+        </p>
+      )}
+      {mode === "register" && (
+        <p className="auth-switch">
+          Уже с нами? <Link href="/login">Войти</Link>
+        </p>
+      )}
     </div>
   );
 }

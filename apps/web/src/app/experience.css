@@ -1,0 +1,207 @@
+/* Full-viewport directions and the centered trainer stack. */
+.landing-main > #directions {
+  padding: 0;
+  height: 100dvh;
+  min-height: 100dvh;
+}
+#directions .colonnade {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  margin: 0;
+  border-radius: 0;
+}
+#directions .colonnade-number {
+  top: 110px;
+}
+#directions .colonnade-name {
+  bottom: 72px;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+#directions .colonnade-column[data-active="true"] .colonnade-name {
+  bottom: 230px;
+}
+#directions .colonnade-description {
+  bottom: 68px;
+}
+.almanac-viewport {
+  padding-bottom: 110px;
+}
+.landing-main .almanac-viewport .section-heading {
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+.almanac-viewport .section-heading h2 {
+  font-size: clamp(38px, 4vw, 64px);
+}
+.almanac-navigation {
+  padding-top: 12px;
+}
+.almanac-navigation > span {
+  margin: 0;
+}
+.almanac-stack {
+  flex: 0 1 540px;
+  max-height: 56dvh;
+  margin-block: auto;
+}
+.almanac-body {
+  justify-content: flex-start;
+  padding-top: clamp(16px, 3dvh, 38px);
+}
+.almanac-viewport:focus-visible {
+  outline: 2px solid #597950;
+  outline-offset: -6px;
+}
+
+/* Shared motion: the persistent auth artwork and workspace chrome stay still. */
+@keyframes page-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.auth-form,
+.workspace-page,
+main#main-content:not(.landing-main) {
+  animation: page-arrive 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.auth-form > .success-box,
+.auth-form .form-error,
+.workspace-modal-content > div {
+  animation: page-arrive 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[data-slot="dialog-overlay"],
+[data-slot="dialog-content"] {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-slot="dialog-content"][data-state="open"] {
+  --tw-enter-scale: 0.985;
+}
+[data-slot="dialog-content"][data-state="closed"] {
+  --tw-exit-scale: 0.985;
+}
+
+/* First visit only. Bootstrap runs before paint; the app loads behind it. */
+#site-content {
+  display: contents;
+}
+.site-intro {
+  display: none;
+}
+html[data-intro] {
+  overflow: hidden;
+}
+html[data-intro] .site-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  background: #f5f6ee;
+  color: #103f1b;
+  transition:
+    opacity 500ms ease,
+    visibility 500ms;
+}
+html[data-intro="leaving"] .site-intro {
+  opacity: 0;
+  visibility: hidden;
+}
+.site-intro-brand {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.site-intro-caption {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+.tetris-loader {
+  text-align: center;
+  min-height: 250px;
+}
+.tetris-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 12px);
+  gap: 1px;
+  padding: 5px;
+  border: 1px solid #819577;
+  margin: 0 auto 22px;
+  width: max-content;
+}
+.tetris-grid span {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #d8dfd0;
+  background: #fbfcf6;
+}
+.tetris-grid span[data-filled="true"] {
+  background: #103f1b;
+  border-color: #103f1b;
+}
+.tetris-loader p {
+  font-size: 12px;
+  color: #61715a;
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  #directions .colonnade-number {
+    top: 18px;
+  }
+  #directions .colonnade-name {
+    top: 14px;
+    bottom: auto;
+    font-size: 21px;
+  }
+  #directions .colonnade-column[data-active="true"] .colonnade-name {
+    top: 62px;
+    bottom: auto;
+    font-size: 32px;
+  }
+  #directions .colonnade-description {
+    bottom: 28px;
+  }
+  #directions .colonnade-column[data-active="true"] {
+    min-height: min(300px, 52dvh);
+  }
+  .almanac-viewport {
+    padding: 96px 18px 86px;
+  }
+  .almanac-viewport .section-heading h2 {
+    font-size: 30px;
+  }
+  .almanac-stack {
+    flex: 1;
+    max-height: 62dvh;
+  }
+  .almanac-body {
+    padding: 2px 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-form,
+  .workspace-page,
+  main#main-content:not(.landing-main),
+  .auth-form > .success-box,
+  .auth-form .form-error,
+  .workspace-modal-content > div,
+  [data-slot="dialog-content"],
+  [data-slot="dialog-overlay"] {
+    animation: none;
+  }
+  html[data-intro] .site-intro {
+    transition: none;
+  }
+}

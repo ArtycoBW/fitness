@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Cormorant_Garamond } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { SiteIntro } from "@/components/site-intro";
 import "./globals.css";
 import "./programs.css";
 import "./dashboard.css";
@@ -8,6 +9,7 @@ import "./operations.css";
 import "./refinements.css";
 import "./landing.css";
 import "./landing-refinements.css";
+import "./experience.css";
 const sans = Manrope({
   subsets: ["latin", "cyrillic"],
   variable: "--font-manrope",
@@ -35,12 +37,22 @@ export default function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(location.pathname==='/'&&!localStorage.getItem('stride-intro-seen')){document.documentElement.dataset.intro='pending';window.__strideIntroStart=performance.now();setTimeout(function(){delete document.documentElement.dataset.intro;var app=document.getElementById('site-content');if(app)app.inert=false},4500)}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={sans.variable + " " + display.variable}>
         <noscript>
           <style>{`.almanac-body,.almanac-foot{opacity:1!important;transform:none!important}`}</style>
         </noscript>
-        <Providers>{children}</Providers>
+        <Providers>
+          <div id="site-content">{children}</div>
+          <SiteIntro />
+        </Providers>
       </body>
     </html>
   );

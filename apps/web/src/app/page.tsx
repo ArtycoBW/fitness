@@ -87,21 +87,11 @@ export default async function Home() {
             </Link>
           </div>
         </section>
-        <section id="directions" className="directions-section">
-          <div className="section-heading landing-section" data-reveal>
-            <div>
-              <span className="eyebrow">02 / ВЫБЕРИТЕ СВОЙ ТЕМП</span>
-              <h2>
-                Разные движения.
-                <br />
-                <em>Один — ваш.</em>
-              </h2>
-            </div>
-            <p>
-              Сила, баланс, подвижность. Пробуйте то, что откликается вам
-              сегодня.
-            </p>
-          </div>
+        <section
+          id="directions"
+          className="directions-section"
+          aria-label="Направления тренировок"
+        >
           {workouts?.length ? (
             <Colonnade items={workouts} />
           ) : (
