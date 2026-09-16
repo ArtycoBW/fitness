@@ -142,12 +142,13 @@ export function Staff() {
                         {u.id !== me.data?.id &&
                           !u.roles.some((r) => r.role === "OWNER") && (
                             <div className="flex gap-2">
-                              {owner && (
+                              {(owner ||
+                                !u.roles.some((r) => r.role === "ADMIN")) && (
                                 <Button
                                   variant="outline"
                                   onClick={() => setEditing(u)}
                                 >
-                                  Роли
+                                  {owner ? "Роли" : "Права тренера"}
                                 </Button>
                               )}
                               {(owner ||
@@ -233,7 +234,11 @@ export function Staff() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Изменить роли" : "Пригласить сотрудника"}
+              {editing
+                ? owner
+                  ? "Изменить роли"
+                  : "Права тренера"
+                : "Пригласить сотрудника"}
             </DialogTitle>
             <DialogDescription>
               {editing
@@ -287,7 +292,15 @@ function StaffForm({
         e.preventDefault();
         const f = new FormData(e.currentTarget);
         save.mutate({
-          roles: f.getAll("roles"),
+          roles:
+            user && !owner
+              ? [
+                  ...user.roles
+                    .map((r) => r.role)
+                    .filter((r) => r !== "TRAINER"),
+                  ...f.getAll("roles"),
+                ]
+              : f.getAll("roles"),
           ...(!user ? { name: f.get("name"), email: f.get("email") } : {}),
         });
       }}
@@ -306,6 +319,7 @@ function StaffForm({
           .filter(
             ([v]) =>
               v !== "OWNER" &&
+              (!user || owner || v === "TRAINER") &&
               (owner || v !== "ADMIN") &&
               (user || v !== "CLIENT"),
           )

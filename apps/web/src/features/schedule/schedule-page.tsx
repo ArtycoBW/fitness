@@ -82,6 +82,7 @@ export function SchedulePage({
     onSuccess: setCancelImpact,
   });
   const filters = {
+    ...(area === "trainer" ? { area: "trainer" } : {}),
     from: days[0]!,
     to: days[days.length - 1]!,
     ...(params.get("trainerId") ? { trainerId: params.get("trainerId")! } : {}),
@@ -127,7 +128,10 @@ export function SchedulePage({
     queryKey: ["schedule", "detail", area, selected],
     queryFn: () =>
       api<Session>(
-        (area === "public" ? "/public" : "") + "/schedule/" + selected,
+        (area === "public" ? "/public" : "") +
+          "/schedule/" +
+          selected +
+          (area === "trainer" ? "?area=trainer" : ""),
       ),
     enabled: !!selected,
     refetchInterval: 10000,
@@ -400,7 +404,7 @@ export function SchedulePage({
                   </Button>
                 </div>
               ) : null}
-              {area !== "public" && (
+              {area === "admin" && (
                 <Button variant="outline" asChild>
                   <Link
                     href={

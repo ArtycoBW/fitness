@@ -16,6 +16,7 @@ import { NotificationService } from "../notifications/notification.service";
 import { OperationsService } from "./operations.service";
 import { ReportService } from "./report.service";
 import { ExportService } from "./export.service";
+import { TrainerHoursService } from "./trainer-hours.service";
 @Controller()
 class NotificationController {
   constructor(private readonly s: NotificationService) {}
@@ -49,7 +50,21 @@ class OperationsController {
     private readonly n: NotificationService,
     private readonly reports: ReportService,
     private readonly exports: ExportService,
+    private readonly hours: TrainerHoursService,
   ) {}
+  @Roles("OWNER", "ADMIN") @Get("analytics/trainer-hours") trainerHours(
+    @Req() r: AuthRequest,
+    @Query() q: unknown,
+  ) {
+    return this.hours.report(r.auth, q);
+  }
+  @Roles("OWNER", "ADMIN") @Put("analytics/trainer-hours/:id") recordHours(
+    @Req() r: AuthRequest,
+    @Param("id") id: string,
+    @Body() b: unknown,
+  ) {
+    return this.hours.record(r.auth, id, b);
+  }
   @Public() @Post("public/leads") contact(
     @Req() r: AuthRequest,
     @Body() b: unknown,
@@ -137,6 +152,7 @@ class OperationsController {
     OperationsService,
     ReportService,
     ExportService,
+    TrainerHoursService,
   ],
   exports: [NotificationService, ReportService, ExportService],
 })

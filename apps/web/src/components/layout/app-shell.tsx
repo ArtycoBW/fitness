@@ -152,7 +152,7 @@ export function AppShell({
                 : "Личный кабинет"}
           </div>
           <nav className="sidebar-nav">
-            {area !== "account" && (
+            {area === "admin" && (
               <SidebarLink
                 href={root + "/reports"}
                 label="Отчёты"
@@ -169,6 +169,11 @@ export function AppShell({
             {area === "admin" &&
               user.roles.some((r) => ["OWNER", "ADMIN"].includes(r)) && (
                 <>
+                  <SidebarLink
+                    href="/admin/analytics"
+                    label="Загрузка и часы"
+                    icon={<ChartNoAxesCombined size={20} />}
+                  />
                   <SidebarLink
                     href="/admin/settings"
                     label="Настройки клуба"
@@ -187,16 +192,17 @@ export function AppShell({
                 </>
               )}
             {(area === "account" ||
-              user.roles.some((r) =>
-                ["OWNER", "ADMIN", "TRAINER"].includes(r),
-              )) && (
+              (area === "admin" &&
+                user.roles.some((r) =>
+                  ["OWNER", "ADMIN", "TRAINER"].includes(r),
+                ))) && (
               <SidebarLink
                 href={root + "/programs"}
                 label={area === "account" ? "Мои программы" : "Программы"}
                 icon={<Dumbbell size={20} />}
               />
             )}
-            {area !== "account" &&
+            {area === "admin" &&
               user.roles.some((r) =>
                 ["OWNER", "ADMIN", "TRAINER"].includes(r),
               ) && (
@@ -213,11 +219,13 @@ export function AppShell({
                   />
                 </>
               )}
-            <SidebarLink
-              href={root}
-              label="Обзор"
-              icon={<LayoutDashboard size={20} />}
-            />
+            {area !== "trainer" && (
+              <SidebarLink
+                href={root}
+                label="Обзор"
+                icon={<LayoutDashboard size={20} />}
+              />
+            )}
             {area === "admin" &&
               adminNavigation.map((item) => (
                 <SidebarLink
@@ -249,24 +257,9 @@ export function AppShell({
             {area === "trainer" && (
               <>
                 <SidebarLink
-                  href="/trainer/bookings"
-                  label="Участники"
-                  icon={<Users size={20} />}
-                />
-                <SidebarLink
                   href="/trainer/schedule"
                   label="Расписание"
                   icon={<CalendarDays size={20} />}
-                />
-                <SidebarLink
-                  href="/trainer/clients"
-                  label="Мои клиенты"
-                  icon={<Users size={20} />}
-                />
-                <SidebarLink
-                  href="/trainer/availability"
-                  label="Доступность"
-                  icon={<Activity size={20} />}
                 />
               </>
             )}

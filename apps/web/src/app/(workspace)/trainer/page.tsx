@@ -1,4 +1,4 @@
-import { Overview } from "@/features/dashboard/overview";
+import { redirect } from "next/navigation";
 export default function Page() {
-  return <Overview area="trainer" />;
+  redirect("/trainer/schedule");
 }

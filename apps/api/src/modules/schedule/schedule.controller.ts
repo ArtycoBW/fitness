@@ -12,6 +12,9 @@ import { AuthRequest, Public, Roles } from "../auth/access";
 import { ScheduleService } from "./schedule.service";
 import { ResourceModule } from "./resource.service";
 import { BookingCoreModule } from "../bookings/booking-core.service";
+import { areaPrincipal } from "../../common/area";
+import { parse } from "../../common/validation";
+import { z } from "zod";
 @Controller()
 export class ScheduleController {
   constructor(private readonly service: ScheduleService) {}
@@ -36,8 +39,18 @@ export class ScheduleController {
   }
   @Roles("OWNER", "ADMIN", "RECEPTION", "TRAINER", "CLIENT")
   @Get("schedule/:id")
-  detail(@Param("id") id: string, @Req() r: AuthRequest) {
-    return this.service.detail(id, r.auth);
+  detail(
+    @Param("id") id: string,
+    @Req() r: AuthRequest,
+    @Query("area") area: unknown,
+  ) {
+    return this.service.detail(
+      id,
+      areaPrincipal(
+        r.auth,
+        parse(z.enum(["admin", "trainer", "account"]).optional(), area),
+      ),
+    );
   }
   @Roles("OWNER", "ADMIN") @Post("schedule") create(
     @Body() b: unknown,

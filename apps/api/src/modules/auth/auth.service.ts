@@ -359,6 +359,8 @@ export class AuthService {
     return { message: "Приглашение принято. Войдите в аккаунт." };
   }
   async setRoles(auth: Principal, id: string, dto: RolesDto) {
+    if (!auth.roles.some((r) => ["OWNER", "ADMIN"].includes(r)))
+      fail("FORBIDDEN", "Изменение ролей недоступно", 403);
     if (id === auth.id || !dto.roles.length)
       fail(
         "INVALID_ROLES",
@@ -371,6 +373,24 @@ export class AuthService {
     });
     if (!target || target.roles.some((r) => r.role === "OWNER"))
       fail("FORBIDDEN", "Изменение недоступно", 403);
+    if (!auth.roles.includes("OWNER")) {
+      const unchanged = target.roles
+        .map((r) => r.role)
+        .filter((r) => r !== "TRAINER")
+        .sort();
+      const requested = [...new Set(dto.roles)]
+        .filter((r) => r !== "TRAINER")
+        .sort();
+      if (
+        target.roles.some((r) => r.role === "ADMIN") ||
+        JSON.stringify(unchanged) !== JSON.stringify(requested)
+      )
+        fail(
+          "FORBIDDEN",
+          "Администратор может изменять только роль тренера",
+          403,
+        );
+    }
     await this.db.$transaction(async (tx) => {
       await tx.userRole.deleteMany({ where: { userId: id } });
       if (!dto.roles.includes("TRAINER")) {

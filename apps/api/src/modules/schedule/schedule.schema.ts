@@ -64,6 +64,7 @@ export const cancelSchema = z.strictObject({
 });
 export const rangeSchema = z
   .object({
+    area: z.enum(["admin", "trainer", "account"]).optional(),
     from: z.iso.date(),
     to: z.iso.date(),
     trainerId: uuid.optional(),

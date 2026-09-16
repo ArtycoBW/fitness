@@ -19,7 +19,9 @@ test("trainer publishes and assigns a program, client records results, trainer r
       .getByLabel("Пароль", { exact: true })
       .fill(process.env.E2E_PASSWORD!);
     await p.getByRole("button", { name: "Войти", exact: true }).click();
-    await p.waitForURL("**/" + area);
+    await p.waitForURL(
+      "**/" + (area === "trainer" ? "trainer/schedule" : area),
+    );
   };
   await login(page, process.env.E2E_TRAINER_EMAIL!, "trainer");
   await page.goto("/trainer/programs/new");

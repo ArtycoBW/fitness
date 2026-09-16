@@ -151,7 +151,7 @@ export class AuthController {
   @Public() @Post("auth/accept-invite") accept(@Body() dto: AcceptInviteDto) {
     return this.service.acceptInvite(dto.token, dto.password);
   }
-  @Roles("OWNER") @Put("users/:id/roles") roles(
+  @Roles("OWNER", "ADMIN") @Put("users/:id/roles") roles(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: RolesDto,
     @Req() req: AuthRequest,

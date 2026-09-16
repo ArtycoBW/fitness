@@ -18,9 +18,13 @@ for (const [role, email, area] of cases)
         .getByLabel("Пароль", { exact: true })
         .fill(process.env.E2E_PASSWORD!);
       await page.getByRole("button", { name: "Войти", exact: true }).click();
-      await page.waitForURL("**/" + area);
+      await page.waitForURL(
+        "**/" + (area === "trainer" ? "trainer/schedule" : area),
+      );
       await expect(
-        page.getByRole("heading", { name: /Здравствуйте/ }),
+        page.getByRole("heading", {
+          name: area === "trainer" ? "Моё расписание" : /Здравствуйте/,
+        }),
       ).toBeVisible();
       await expect(page.getByText("Собираем ваш день…")).toHaveCount(0);
       if (area === "admin") {
@@ -48,16 +52,15 @@ for (const [role, email, area] of cases)
         }
       }
       if (area === "trainer") {
-        await page.goto("/trainer/clients");
-        await page
-          .getByRole("link", { name: "Александра Морозова", exact: true })
-          .click();
         await expect(
-          page.getByRole("heading", {
-            name: "Александра Морозова",
-            exact: true,
-          }),
+          page.getByRole("link", { name: "Расписание", exact: true }),
         ).toBeVisible();
+        await expect(
+          page.getByRole("link", { name: "Мои клиенты", exact: true }),
+        ).toHaveCount(0);
+        await expect(
+          page.getByRole("button", { name: "Добавить занятие", exact: true }),
+        ).toHaveCount(0);
       }
       if (area === "account") {
         await expect(

@@ -280,6 +280,7 @@ model SessionSeries {
 }
 
 model ScheduledSession {
+  workLog TrainerWorkLog?
   bookings Booking[]
   id               String            @id @default(uuid()) @db.Uuid
   seriesId         String?           @db.Uuid
@@ -307,6 +308,16 @@ model ScheduledSession {
   @@index([status, startAt])
   @@index([trainerId, startAt])
   @@index([hallId, startAt])
+}
+
+model TrainerWorkLog {
+  sessionId  String   @id @db.Uuid
+  minutes    Int
+  note       String   @default("")
+  recordedBy String   @db.Uuid
+  updatedAt  DateTime @updatedAt
+  version    Int      @default(1)
+  session    ScheduledSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
 }
 
 model HallOccupancy {

@@ -1,0 +1,224 @@
+.page {
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.period,
+.filters,
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.period label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.period input {
+  width: 170px;
+}
+.refresh {
+  font-size: 12px;
+  min-width: 100px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.metric,
+.card {
+  border: 1px solid #dce3d6;
+  border-radius: 16px;
+  padding: 24px;
+  background: #fff;
+}
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.metric span {
+  color: #61705b;
+  font-size: 13px;
+}
+.metric strong {
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 500;
+}
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.card {
+  min-width: 0;
+}
+.card h2 {
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+.card > p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+.bars {
+  display: grid;
+  gap: 18px;
+  max-height: 355px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.barRow > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.barRow strong {
+  font-weight: 500;
+  white-space: nowrap;
+}
+.track {
+  height: 9px;
+  background: #edf1e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.track span {
+  display: block;
+  height: 100%;
+  background: #34613d;
+  border-radius: inherit;
+  transition: width 0.45s ease;
+}
+.dailyScroll {
+  position: relative;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.daily {
+  display: flex;
+  gap: 9px;
+  min-width: 100%;
+  align-items: flex-end;
+  padding: 10px 2px;
+}
+.day {
+  flex: 1 0 35px;
+  text-align: center;
+  font-size: 10px;
+}
+.day small {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.dayTrack {
+  margin-top: 10px;
+  height: 220px;
+  background: #edf1e8;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.dayTrack i {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #739271;
+  border-radius: inherit;
+  transition: height 0.45s ease;
+}
+.filters select {
+  min-width: 230px;
+}
+.tableScroll {
+  position: relative;
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  font-size: 12px;
+  color: #61705b;
+  font-weight: 500;
+  text-align: left;
+  padding: 12px 12px 12px 0;
+}
+.table td {
+  padding: 18px 16px 18px 0;
+  border-top: 1px solid #e5e9e0;
+  vertical-align: middle;
+}
+.table td:last-child {
+  text-align: right;
+  padding-right: 0;
+}
+.table strong {
+  display: block;
+  font-weight: 500;
+}
+.table small {
+  display: block;
+  font-size: 12px;
+  color: #61705b;
+  margin-top: 5px;
+  max-width: 300px;
+  overflow-wrap: anywhere;
+}
+.table button {
+  white-space: nowrap;
+}
+.empty {
+  padding: 32px 0;
+  text-align: center;
+  color: #61705b;
+}
+.pagination {
+  justify-content: flex-end;
+  margin: 20px 0 0;
+}
+@media (max-width: 1100px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .charts {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .metric,
+  .card {
+    padding: 16px;
+  }
+  .metrics {
+    gap: 10px;
+  }
+  .table {
+    min-width: 720px;
+  }
+  .period {
+    gap: 12px;
+  }
+  .period input {
+    width: 155px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .track span,
+  .dayTrack i {
+    transition: none;
+  }
+}

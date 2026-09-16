@@ -18,6 +18,7 @@ import { ResourceService } from "./resource.service";
 import { midnight, DAY } from "../memberships/membership.schema";
 import type { Prisma } from "../../generated/prisma/client";
 import { BookingCore } from "../bookings/booking-core.service";
+import { areaPrincipal } from "../../common/area";
 const include = {
   _count: {
     select: {
@@ -179,6 +180,7 @@ export class ScheduleService {
   }
   async list(query: unknown, auth?: Principal) {
     const q = parse(rangeSchema, query);
+    if (auth) auth = areaPrincipal(auth, q.area);
     const staff = auth?.roles.some((r) =>
       ["OWNER", "ADMIN", "RECEPTION"].includes(r),
     );
