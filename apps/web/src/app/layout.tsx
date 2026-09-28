@@ -10,6 +10,7 @@ import "./refinements.css";
 import "./landing.css";
 import "./landing-refinements.css";
 import "./experience.css";
+import "./star-hero.css";
 const sans = Manrope({
   subsets: ["latin", "cyrillic"],
   variable: "--font-manrope",

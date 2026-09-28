@@ -19,7 +19,8 @@ import { api, workspace, type User } from "@/lib/api";
 // Adapted from the supplied AnimatedNavFramer, with keyboard-safe collapsed navigation.
 export function PublicHeader() {
   const [open, setOpen] = useState(false),
-    [expanded, setExpanded] = useState(true);
+    [expanded, setExpanded] = useState(true),
+    [onHero, setOnHero] = useState(true);
   const path = usePathname(),
     reduce = useReducedMotion(),
     { scrollY } = useScroll();
@@ -28,6 +29,7 @@ export function PublicHeader() {
     pendingAnchor = useRef<string | null>(null),
     header = useRef<HTMLElement>(null);
   useMotionValueEvent(scrollY, "change", (y) => {
+    setOnHero(y < window.innerHeight - 100);
     if (window.matchMedia("(max-width:1000px)").matches) {
       setExpanded(true);
       return;
@@ -74,6 +76,7 @@ export function PublicHeader() {
       ref={header}
       className="public-header floating-header"
       data-expanded={expanded}
+      data-on-hero={path === "/" && onHero}
     >
       <a href="#main-content" className="skip-link">
         Перейти к содержимому
@@ -85,7 +88,7 @@ export function PublicHeader() {
             className="brand"
             aria-label="Страйд — главная"
           >
-            <Brand />
+            <Brand light={path === "/" && onHero} />
           </Link>
           <nav aria-label="Основная навигация">
             {links.map(([label, id]) => (

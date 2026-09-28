@@ -1,10 +1,20 @@
 import Image from "next/image";
-export function Brand({ compact = false }: { compact?: boolean }) {
+export function Brand({
+  compact = false,
+  light = false,
+}: {
+  compact?: boolean;
+  light?: boolean;
+}) {
   return (
     <span className="brand-lockup">
       <Image
         className="brand-symbol"
-        src="/media/editorial/logo.webp"
+        src={
+          light
+            ? "/media/editorial/logo-white.webp"
+            : "/media/editorial/logo.webp"
+        }
         alt=""
         width={44}
         height={44}

@@ -59,10 +59,7 @@ export default async function Home() {
     <LandingShell>
       <PublicHeader />
       <main id="main-content" className="landing-main">
-        <Hero
-          workoutCount={workouts?.length ?? 0}
-          hallCount={halls?.length ?? 0}
-        />
+        <Hero />
         <LandingMotion />
         <section id="club" className="landing-section club-intro">
           <div data-reveal>

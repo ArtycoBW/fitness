@@ -1,0 +1,260 @@
+.landing-main > .stride-hero.star-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  height: 100dvh;
+  min-height: 620px;
+  margin: 0;
+  padding: 110px 30px 70px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #050812 url("/media/star-man/star-man-desktop.webp") center /
+    cover no-repeat;
+  color: #fff;
+}
+.star-hero-video,
+.star-hero-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.star-hero-video {
+  z-index: -2;
+  object-fit: cover;
+  object-position: center;
+}
+.star-hero-shade {
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #03050c72 0%,
+    #03050c0d 34%,
+    #03050c42 74%,
+    #03050ca8 100%
+  );
+}
+.star-hero-copy {
+  width: 100%;
+  max-width: 1140px;
+  margin-top: 7dvh;
+  text-align: center;
+}
+.star-hero-eyebrow {
+  margin-bottom: 26px;
+  color: #f5f6f7df;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+}
+.landing-main .star-hero h1 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.star-hero h1 span,
+.star-hero h1 em {
+  display: block;
+  width: 100%;
+  color: #f9fbff;
+  background: linear-gradient(100deg, #fff 5%, #ffffffef 52%, #ffffffa8 95%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.star-hero h1 span {
+  font-family: var(--font-manrope), Arial, sans-serif;
+  font-size: clamp(32px, 4.4vw, 72px);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+}
+.star-hero h1 em {
+  margin-top: 4px;
+  padding-bottom: 0.13em;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: clamp(82px, 9vw, 154px);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: -0.065em;
+  line-height: 0.92;
+}
+.star-hero-lead {
+  margin: 16px auto 0;
+  max-width: 540px;
+  color: #ffffffd9;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.star-hero-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 58px;
+}
+.star-hero-actions a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  min-height: 56px;
+  border: 1px solid #ffffffb8;
+  border-radius: 999px;
+  padding: 0 26px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    color 250ms,
+    background 250ms,
+    border-color 250ms,
+    transform 250ms;
+}
+.star-hero-actions a:hover {
+  transform: translateY(-3px);
+}
+.star-hero-actions a:focus-visible,
+.star-hero-pause:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 4px;
+}
+.star-hero-primary {
+  color: #0b1b13 !important;
+  background: #fff;
+  border-color: #fff !important;
+}
+.star-hero-primary:hover {
+  background: #e1f4df;
+}
+.star-hero-secondary {
+  color: #fff !important;
+  background: #ffffff16;
+  backdrop-filter: blur(8px);
+}
+.star-hero-secondary:hover {
+  background: #ffffff30;
+}
+.star-hero-pause {
+  position: absolute;
+  right: 30px;
+  bottom: 25px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: white;
+  border: 1px solid #ffffff94;
+  border-radius: 50%;
+  background: #080c1680;
+  cursor: pointer;
+}
+.floating-header.public-header[data-on-hero="true"] {
+  top: 16px;
+  width: calc(100vw - 60px);
+  max-width: none;
+}
+.floating-header[data-on-hero="true"] .nav-capsule {
+  width: 100%;
+  max-width: none;
+  border-color: #ffffff38;
+  background: #ffffff1a;
+  box-shadow: 0 8px 32px #02041124;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.floating-header[data-on-hero="true"] .nav-expanded {
+  width: 100%;
+  padding-left: 32px;
+  padding-right: 5px;
+  color: #fff;
+}
+.floating-header[data-on-hero="true"].public-header nav {
+  gap: clamp(22px, 3.2vw, 64px);
+  font-size: 13px;
+}
+.floating-header[data-on-hero="true"] .nav-expanded > [data-slot="button"] {
+  min-width: 150px;
+  min-height: 52px;
+  color: #fff;
+  background: #07120c;
+}
+.floating-header[data-on-hero="true"]
+  .nav-expanded
+  > [data-slot="button"]:hover {
+  background: #173b20;
+}
+.floating-header[data-on-hero="true"][data-expanded="false"] {
+  width: 62px;
+}
+.floating-header[data-on-hero="true"][data-expanded="false"] .nav-capsule {
+  width: 62px;
+}
+@media (max-width: 1000px) {
+  .floating-header.public-header[data-on-hero="true"] {
+    top: 16px;
+    width: calc(100% - 32px);
+    max-width: 600px;
+  }
+  .floating-header[data-on-hero="true"] .nav-expanded {
+    padding-left: 16px;
+  }
+  .floating-header[data-on-hero="true"] .nav-expanded > [data-slot="button"] {
+    min-width: 84px;
+  }
+  .floating-header[data-on-hero="true"] .public-menu {
+    color: #fff;
+  }
+}
+@media (max-width: 700px) {
+  .landing-main > .stride-hero.star-hero {
+    min-height: 560px;
+    padding: 100px 18px 86px;
+    background-image: url("/media/star-man/star-man-mobile.webp");
+  }
+  .star-hero-video {
+    object-position: center 35%;
+  }
+  .star-hero-copy {
+    margin-top: 4dvh;
+  }
+  .star-hero-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+  }
+  .star-hero h1 span {
+    font-size: clamp(30px, 8vw, 48px);
+  }
+  .star-hero h1 em {
+    font-size: clamp(68px, 16vw, 96px);
+  }
+  .star-hero-lead {
+    max-width: 330px;
+    font-size: 13px;
+  }
+  .star-hero-actions {
+    flex-direction: column;
+    margin-top: 38px;
+  }
+  .star-hero-actions a {
+    width: min(100%, 290px);
+    min-height: 50px;
+  }
+  .star-hero-pause {
+    right: 18px;
+    bottom: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .star-hero-video {
+    display: none;
+  }
+  .star-hero-actions a {
+    transition: none;
+  }
+}
