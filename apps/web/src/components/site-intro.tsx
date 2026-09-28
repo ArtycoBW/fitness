@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import TetrisLoading from "@/components/ui/tetris-loader";
+import { MoleculeIntro } from "@/components/ui/molecule-intro";
 
 export function SiteIntro() {
   const [active, setActive] = useState(false);
@@ -42,9 +42,11 @@ export function SiteIntro() {
   }, []);
   return (
     <div className="site-intro" role="status" aria-label="Загружаем Страйд">
+      <span className="site-intro-overline">ДВИЖЕНИЕ НАЧИНАЕТСЯ ЗДЕСЬ</span>
+      {active && <MoleculeIntro />}
       <span className="site-intro-brand">СТРАЙД</span>
-      {active && <TetrisLoading />}
       <span className="site-intro-caption">КЛУБ ДВИЖЕНИЯ</span>
+      <span className="site-intro-progress" aria-hidden="true"><span /></span>
     </div>
   );
 }

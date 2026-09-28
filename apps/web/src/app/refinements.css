@@ -358,20 +358,6 @@
   min-height: 42px;
   border-radius: 100px;
 }
-.floating-header[data-expanded="false"] .nav-expanded {
-  opacity: 0;
-  pointer-events: none;
-}
-.floating-header[data-expanded="false"] .nav-capsule {
-  width: 62px;
-}
-.nav-expand[data-slot="button"] {
-  position: absolute;
-  inset: 0;
-  width: 60px;
-  height: 60px;
-  padding: 0;
-}
 .floating-header .public-menu {
   display: none;
 }
@@ -500,9 +486,6 @@
   }
   .nav-expanded > [data-slot="button"] {
     margin-left: auto;
-  }
-  .nav-expand {
-    display: none !important;
   }
   .floating-header.public-header nav {
     display: none;

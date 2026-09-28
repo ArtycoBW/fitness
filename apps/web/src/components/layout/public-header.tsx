@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useScroll, useMotionValueEvent, useReducedMotion } from "motion/react";
 import { Menu } from "lucide-react";
 import {
@@ -16,37 +16,22 @@ import { Button } from "@/components/ui/button";
 import { Brand } from "@/components/brand";
 import { useQuery } from "@tanstack/react-query";
 import { api, workspace, type User } from "@/lib/api";
-// Adapted from the supplied AnimatedNavFramer, with keyboard-safe collapsed navigation.
+// Adapted from the supplied AnimatedNavFramer; the capsule stays centered while scrolling.
 export function PublicHeader() {
   const [open, setOpen] = useState(false),
-    [expanded, setExpanded] = useState(true),
     [onHero, setOnHero] = useState(true);
   const path = usePathname(),
     reduce = useReducedMotion(),
     { scrollY } = useScroll();
-  const last = useRef(0),
-    travel = useRef(0),
-    pendingAnchor = useRef<string | null>(null),
-    header = useRef<HTMLElement>(null);
+  const pendingAnchor = useRef<string | null>(null);
+  useEffect(() => {
+    const update = () => setOnHero(window.scrollY < window.innerHeight - 100);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [path]);
   useMotionValueEvent(scrollY, "change", (y) => {
     setOnHero(y < window.innerHeight - 100);
-    if (window.matchMedia("(max-width:1000px)").matches) {
-      setExpanded(true);
-      return;
-    }
-    const delta = y - last.current;
-    travel.current =
-      Math.sign(delta) === Math.sign(travel.current)
-        ? travel.current + delta
-        : delta;
-    if (y < 100 || travel.current < -70) setExpanded(true);
-    else if (
-      y > 180 &&
-      travel.current > 80 &&
-      !header.current?.contains(document.activeElement)
-    )
-      setExpanded(false);
-    last.current = y;
   });
   const links = [
     ["Направления", "directions"],
@@ -73,16 +58,15 @@ export function PublicHeader() {
   });
   return (
     <header
-      ref={header}
       className="public-header floating-header"
-      data-expanded={expanded}
+      data-landing={path === "/"}
       data-on-hero={path === "/" && onHero}
     >
       <a href="#main-content" className="skip-link">
         Перейти к содержимому
       </a>
       <div className="nav-capsule">
-        <div className="nav-expanded" inert={!expanded}>
+        <div className="nav-expanded">
           <Link
             href={href("home")}
             className="brand"
@@ -103,19 +87,6 @@ export function PublicHeader() {
             </Link>
           </Button>
         </div>
-        {!expanded && (
-          <Button
-            variant="ghost"
-            className="nav-expand"
-            aria-label="Развернуть навигацию"
-            onClick={() => {
-              setExpanded(true);
-              travel.current = 0;
-            }}
-          >
-            <Menu size={22} />
-          </Button>
-        )}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button

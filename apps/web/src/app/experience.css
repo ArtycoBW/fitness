@@ -107,9 +107,9 @@ html[data-intro] .site-intro {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 32px;
-  background: #f5f6ee;
-  color: #103f1b;
+  gap: 0;
+  background: radial-gradient(ellipse at 50% 47%, #153b31 0%, #0b251f 35%, #061713 75%);
+  color: #eff7e9;
   transition:
     opacity 500ms ease,
     visibility 500ms;
@@ -119,41 +119,61 @@ html[data-intro="leaving"] .site-intro {
   visibility: hidden;
 }
 .site-intro-brand {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  margin-top: -14px;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: clamp(50px, 9vw, 92px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.12em;
 }
 .site-intro-caption {
+  margin-top: 14px;
   font-size: 10px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.32em;
+  color: #b9d4c0;
 }
-.tetris-loader {
-  text-align: center;
-  min-height: 250px;
+.site-intro-overline {
+  position: absolute;
+  top: clamp(28px, 6vh, 70px);
+  font-size: 10px;
+  letter-spacing: 0.23em;
+  color: #9cc6a7;
 }
-.tetris-grid {
-  display: grid;
-  grid-template-columns: repeat(10, 12px);
-  gap: 1px;
-  padding: 5px;
-  border: 1px solid #819577;
-  margin: 0 auto 22px;
-  width: max-content;
+.site-intro-molecule {
+  display: block;
+  width: min(58vw, 460px);
+  height: min(58vw, 460px);
+  max-height: 52vh;
+  object-fit: contain;
 }
-.tetris-grid span {
-  width: 12px;
-  height: 12px;
-  border: 1px solid #d8dfd0;
-  background: #fbfcf6;
+.site-intro-progress {
+  position: absolute;
+  bottom: clamp(38px, 7vh, 76px);
+  width: min(220px, 54vw);
+  height: 1px;
+  background: #d5ead133;
+  overflow: hidden;
 }
-.tetris-grid span[data-filled="true"] {
-  background: #103f1b;
-  border-color: #103f1b;
+.site-intro-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #d2d9a6;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: intro-progress 3s linear forwards;
 }
-.tetris-loader p {
-  font-size: 12px;
-  color: #61715a;
-  margin: 0;
+@keyframes intro-progress {
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-intro-progress span { animation: none; transform: scaleX(1); }
+}
+@media (max-width: 600px) {
+  .site-intro-molecule {
+    width: min(86vw, 390px);
+    height: min(86vw, 390px);
+  }
 }
 
 @media (max-width: 767px) {
@@ -200,8 +220,5 @@ html[data-intro="leaving"] .site-intro {
   [data-slot="dialog-content"],
   [data-slot="dialog-overlay"] {
     animation: none;
-  }
-  html[data-intro] .site-intro {
-    transition: none;
   }
 }
