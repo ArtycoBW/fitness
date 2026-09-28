@@ -8,15 +8,26 @@ const VERTICES: ReadonlyArray<readonly [number, number, number]> = [
   [1, PHI, 0], [-1, PHI, 0], [1, -PHI, 0], [-1, -PHI, 0],
   [PHI, 0, 1], [-PHI, 0, 1], [PHI, 0, -1], [-PHI, 0, -1],
 ];
+const FALLBACK_NODES = VERTICES.map(([x, y, z]) => {
+  const turnedX = x * Math.cos(0.42) + z * Math.sin(0.42);
+  const turnedZ = z * Math.cos(0.42) - x * Math.sin(0.42);
+  return { x: 50 + turnedX * 18, y: 50 + (y * Math.cos(0.22) - turnedZ * Math.sin(0.22)) * 18, depth: turnedZ };
+});
+const EDGE_LENGTH = Math.min(...VERTICES.flatMap((a, i) =>
+  VERTICES.slice(i + 1).map((b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])),
+));
+const FALLBACK_EDGES: Array<readonly [number, number]> = VERTICES.flatMap((a, i) => VERTICES.flatMap((b, j) =>
+  j > i && Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) < EDGE_LENGTH * 1.05 ? [[i, j] as const] : [],
+));
 
 // The supplied Molecule scene's icosahedral cage, adapted for a short,
 // first-visit introduction without its full-page scroll or controls.
-export function MoleculeIntro() {
+export function MoleculeIntro({ active }: { active: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const element = canvas.current;
-    if (!element) return;
+    if (!element || !active) return;
     let disposed = false;
     let disposeScene = () => {};
 
@@ -151,6 +162,7 @@ export function MoleculeIntro() {
         cage.rotation.y = elapsed * (reducedMotion ? 0 : 0.3) + pointer.x;
         cage.rotation.x = -0.16 + Math.sin(elapsed * 0.5) * (reducedMotion ? 0 : 0.08) + pointer.y;
         renderer.render(scene, camera);
+        element.dataset.ready = "true";
         if (!reducedMotion) frame = requestAnimationFrame(render);
       };
       render();
@@ -169,8 +181,20 @@ export function MoleculeIntro() {
     return () => {
       disposed = true;
       disposeScene();
+      delete element.dataset.ready;
     };
-  }, []);
+  }, [active]);
 
-  return <canvas className="site-intro-molecule" ref={canvas} aria-hidden="true" />;
+  return (
+    <div className="site-intro-visual" aria-hidden="true">
+      <svg className="site-intro-molecule-fallback" viewBox="0 0 100 100">
+        <defs>
+          <radialGradient id="intro-atom"><stop stopColor="#f8fff1" /><stop offset="0.45" stopColor="#9fe6be" /><stop offset="1" stopColor="#44a879" stopOpacity="0.1" /></radialGradient>
+        </defs>
+        {FALLBACK_EDGES.map(([i, j]) => <line key={`${i}-${j}`} x1={FALLBACK_NODES[i]!.x} y1={FALLBACK_NODES[i]!.y} x2={FALLBACK_NODES[j]!.x} y2={FALLBACK_NODES[j]!.y} stroke="#c8ac6c" strokeOpacity="0.56" strokeWidth="0.18" />)}
+        {FALLBACK_NODES.map((node, i) => <circle key={i} cx={node.x} cy={node.y} r={2.1 + node.depth * 0.18} fill="url(#intro-atom)" />)}
+      </svg>
+      <canvas className="site-intro-molecule" ref={canvas} />
+    </div>
+  );
 }

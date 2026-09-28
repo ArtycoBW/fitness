@@ -43,7 +43,7 @@ export function SiteIntro() {
   return (
     <div className="site-intro" role="status" aria-label="Загружаем Страйд">
       <span className="site-intro-overline">ДВИЖЕНИЕ НАЧИНАЕТСЯ ЗДЕСЬ</span>
-      {active && <MoleculeIntro />}
+      <MoleculeIntro active={active} />
       <span className="site-intro-brand">СТРАЙД</span>
       <span className="site-intro-caption">КЛУБ ДВИЖЕНИЯ</span>
       <span className="site-intro-progress" aria-hidden="true"><span /></span>
