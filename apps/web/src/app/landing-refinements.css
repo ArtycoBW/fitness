@@ -657,11 +657,19 @@ footer.cinematic-footer .footer-meta {
   object-fit: cover;
 }
 .hall-canvas-wrap {
-  background: #e4e0d6;
+  background: #dcded4;
+}
+.hall-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #375243;
+  font-size: 12px;
+  letter-spacing: 0.045em;
 }
 .hall-canvas-wrap canvas {
   cursor: grab;
-  transition: opacity 0.8s;
 }
 .hall-canvas-wrap canvas:active {
   cursor: grabbing;

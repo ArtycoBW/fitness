@@ -22,41 +22,26 @@ export function Halls({ items }: { items: PublicItem[] }) {
   useEffect(() => {
     const node = canvas.current;
     if (!node || !items.length) return;
-    let disposed = false,
-      inView = false,
-      started = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const prepare = () => {
-      clearTimeout(timer);
-      if (!inView || started) return;
-      timer = setTimeout(() => {
-        if (disposed || !inView) return;
-        started = true;
-        io.disconnect();
-        window.removeEventListener("scroll", prepare);
-        void import("./hall-world")
-          .then(({ mountHallScene }) => {
-            if (disposed) return;
-            try {
-              scene.current = mountHallScene(node, items, () => setReady(true));
-            } catch {
-              setFailed(true);
-            }
-          })
-          .catch(() => {
-            if (!disposed) setFailed(true);
-          });
-      }, 280);
-    };
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        inView = !!entry?.isIntersecting;
-        prepare();
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(node);
-    window.addEventListener("scroll", prepare, { passive: true });
+    let disposed = false;
+    // Begin fetching the Blender scenes as soon as the landing page hydrates.
+    // By the time the visitor reaches this section, its first room is ready.
+    void import("./hall-world")
+      .then(({ mountHallScene }) => {
+        if (disposed) return;
+        try {
+          scene.current = mountHallScene(
+            node,
+            items,
+            () => setReady(true),
+            () => setFailed(true),
+          );
+        } catch {
+          setFailed(true);
+        }
+      })
+      .catch(() => {
+        if (!disposed) setFailed(true);
+      });
     const lost = (e: Event) => {
       e.preventDefault();
       if (!disposed) {
@@ -67,9 +52,6 @@ export function Halls({ items }: { items: PublicItem[] }) {
     node.addEventListener("webglcontextlost", lost);
     return () => {
       disposed = true;
-      clearTimeout(timer);
-      window.removeEventListener("scroll", prepare);
-      io.disconnect();
       node.removeEventListener("webglcontextlost", lost);
       scene.current?.dispose();
       scene.current = null;
@@ -83,17 +65,22 @@ export function Halls({ items }: { items: PublicItem[] }) {
   return (
     <div className="hall-experience">
       <div className="hall-canvas-wrap">
-        <img
-          className="hall-fallback"
-          src={workoutPhoto(
-            /сил/i.test(item.name)
-              ? "Силовая тренировка"
-              : /персон/i.test(item.name)
-                ? "Пилатес"
-                : "Йога",
-          )}
-          alt={item.name}
-        />
+        {failed && (
+          <img
+            className="hall-fallback"
+            src={workoutPhoto(
+              /сил/i.test(item.name)
+                ? "Силовая тренировка"
+                : /персон/i.test(item.name)
+                  ? "Пилатес"
+                  : "Йога",
+            )}
+            alt={item.name}
+          />
+        )}
+        {!ready && !failed && (
+          <div className="hall-loading" role="status">Загружаем интерьер…</div>
+        )}
         <canvas
           ref={canvas}
           role="img"
