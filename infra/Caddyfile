@@ -1,3 +1,9 @@
+{
+  servers {
+    protocols h1 h2
+  }
+}
+
 http://{$SITE_IP} {
   redir https://{$SITE_DOMAIN}{uri} permanent
 }
