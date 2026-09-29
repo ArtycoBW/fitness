@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Manrope, Cormorant_Garamond } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { SiteIntro } from "@/components/site-intro";
 import "./globals.css";
@@ -11,17 +10,6 @@ import "./landing.css";
 import "./landing-refinements.css";
 import "./experience.css";
 import "./star-hero.css";
-const sans = Manrope({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-manrope",
-  display: "swap",
-});
-const display = Cormorant_Garamond({
-  subsets: ["latin", "cyrillic"],
-  weight: ["300", "400"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: "Страйд | Фитнес-клуб",
@@ -46,7 +34,7 @@ export default function Layout({
           }}
         />
       </head>
-      <body className={sans.variable + " " + display.variable}>
+      <body>
         <noscript>
           <style>{`.almanac-body,.almanac-foot{opacity:1!important;transform:none!important}`}</style>
         </noscript>
